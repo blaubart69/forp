@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28010.2041
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "forp", "forp\forp.vcxproj", "{29C45CAB-ECB9-43CA-AFAF-210EDD17C6AA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestForp", "TestForp\TestForp.vcxproj", "{A185EADA-4403-4E47-9B52-234C269C061F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{29C45CAB-ECB9-43CA-AFAF-210EDD17C6AA}.Release|x64.Build.0 = Release|x64
 		{29C45CAB-ECB9-43CA-AFAF-210EDD17C6AA}.Release|x86.ActiveCfg = Release|Win32
 		{29C45CAB-ECB9-43CA-AFAF-210EDD17C6AA}.Release|x86.Build.0 = Release|Win32
+		{A185EADA-4403-4E47-9B52-234C269C061F}.Debug|x64.ActiveCfg = Debug|x64
+		{A185EADA-4403-4E47-9B52-234C269C061F}.Debug|x64.Build.0 = Debug|x64
+		{A185EADA-4403-4E47-9B52-234C269C061F}.Debug|x86.ActiveCfg = Debug|Win32
+		{A185EADA-4403-4E47-9B52-234C269C061F}.Debug|x86.Build.0 = Debug|Win32
+		{A185EADA-4403-4E47-9B52-234C269C061F}.Release|x64.ActiveCfg = Release|x64
+		{A185EADA-4403-4E47-9B52-234C269C061F}.Release|x64.Build.0 = Release|x64
+		{A185EADA-4403-4E47-9B52-234C269C061F}.Release|x86.ActiveCfg = Release|Win32
+		{A185EADA-4403-4E47-9B52-234C269C061F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

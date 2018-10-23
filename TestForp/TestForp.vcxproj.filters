@@ -13,39 +13,35 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="obj">
+      <UniqueIdentifier>{0a0dcea7-e0a5-4fc5-a3a4-79d42dcfae3f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="libBeeCpp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="forp.h">
+    <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="forp.cpp">
+    <ClCompile Include="TestSubst.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LibBee.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Log.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SubstPercentSymbols.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="getopts.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="..\forp\x64\Debug\pch.obj">
+      <Filter>obj</Filter>
+    </Object>
+    <Object Include="..\forp\x64\Debug\Log.obj">
+      <Filter>obj</Filter>
+    </Object>
+    <Object Include="..\forp\x64\Debug\SubstPercentSymbols.obj">
+      <Filter>obj</Filter>
+    </Object>
   </ItemGroup>
 </Project>
