@@ -24,12 +24,18 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HelpReadline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestSubst.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestReadLine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,6 +47,9 @@
       <Filter>obj</Filter>
     </Object>
     <Object Include="..\forp\x64\Debug\SubstPercentSymbols.obj">
+      <Filter>obj</Filter>
+    </Object>
+    <Object Include="..\forp\x64\Debug\readline.obj">
       <Filter>obj</Filter>
     </Object>
   </ItemGroup>

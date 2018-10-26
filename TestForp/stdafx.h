@@ -17,3 +17,6 @@
 #include <Windows.h>
 
 #include "..\forp\forp.h"
+#include "..\forp\readline.h"
+
+#include "HelpReadline.h"

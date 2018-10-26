@@ -154,6 +154,8 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ExceptionHandling>false</ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -169,10 +171,12 @@
     <ClInclude Include="libBeeCpp.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="readline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="forp.cpp" />
     <ClCompile Include="getopts.cpp" />
+    <ClCompile Include="readline.cpp" />
     <ClCompile Include="SubstPercentSymbols.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>

@@ -1,14 +1,17 @@
 #include "pch.h"
 
 void printUsage(void);
+void concatArgsToOneString(int argc, wchar_t *argv[], int startIdx, LPWSTR* line, SIZE_T* len);
 
 bool getopts(int argc, wchar_t *argv[], OPTS* opts)
 {
 	opts->dryrun = false;
 	opts->parallel = 16;
-	opts->cmdLineToExec = NULL;
+	opts->cmdLineTemplate = NULL;
+	opts->inputfilename = NULL;
 
 	bool showHelp = false;
+	bool ok = false;
 
 	int i;
 	for (i = 1; i < argc; ++i)
@@ -20,6 +23,10 @@ bool getopts(int argc, wchar_t *argv[], OPTS* opts)
 			case L't':
 				++i;
 				opts->parallel = StrToIntW((const wchar_t*)argv[i]);
+				break;
+			case L'f':
+				++i;
+				opts->inputfilename = argv[i];
 				break;
 			case L'n':	opts->dryrun = true;			break;
 			case L'd':	Log::Instance()->setLevel(3);	break;
@@ -36,30 +43,42 @@ bool getopts(int argc, wchar_t *argv[], OPTS* opts)
 
 	if (showHelp)
 	{
-		printUsage();
-		return false;
 	}
-
-	if (i >= argc)
+	else if (i >= argc)
 	{
 		Log::Instance()->err(L"no command to execute given");
-		printUsage();
-		return false;
+	} 
+	else if (opts->inputfilename == NULL)
+	{
+		Log::Instance()->err(L"must specifiy an input file");
+	}
+	else
+	{
+		concatArgsToOneString(argc, argv, i, &opts->cmdLineTemplate, &opts->cchcmdLineToExecSize);
+		ok = true;
 	}
 
-	opts->cchcmdLineToExecSize = lstrlenW(GetCommandLineW());
-	opts->cmdLineToExec = (LPWSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, opts->cchcmdLineToExecSize);
-
-	for (; i < argc; ++i)
+	if (!ok)
 	{
-		StrCatBuffW(opts->cmdLineToExec, argv[i], (int)opts->cchcmdLineToExecSize);
+		printUsage();
+	}
+
+	return ok;
+}
+
+void concatArgsToOneString(int argc, wchar_t *argv[], int startIdx, LPWSTR* line, SIZE_T* cchLen)
+{
+	*cchLen = lstrlenW(GetCommandLineW());
+	*line = (LPWSTR)LocalAlloc(LMEM_FIXED, (*cchLen) * sizeof(WCHAR));
+
+	for (int i = startIdx; i < argc; ++startIdx)
+	{
+		StrCatBuffW(*line, argv[i], (int)*cchLen);
 		if (i + 1 < argc)
 		{
-			StrCatBuffW(opts->cmdLineToExec, L" ", (int)opts->cchcmdLineToExecSize);
+			StrCatBuffW(*line, L" ", (int)*cchLen);
 		}
 	}
-
-	return 0;
 }
 
 void printUsage(void)
@@ -67,9 +86,10 @@ void printUsage(void)
 	Log::Instance()->writeLine(
 		L"usage: forp [OPTIONS] {program to exec with params}"
 		L"\nOptions:"
+		L"\n  -f     file with arguments per line"
 		L"\n  -n     dry run"
 		L"\n  -t     how many processes to run in parallel"
-		L"\n  -d     debug outputs"
+		L"\n  -d     debug"
 		L"\n  -h     show this help"
 		L"\n");
 }

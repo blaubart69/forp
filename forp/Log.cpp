@@ -105,7 +105,7 @@ void Log::writeLogLine(const WCHAR* format, va_list args, bool appendNewLine)
 }
 void Log::writeLogLine(WCHAR prefix, const WCHAR* format, va_list args, bool appendNewLine)
 {
-	WCHAR buf[1024];
+	WCHAR buf[256];
 	int prefixLen;
 
 	if (prefix == L'\0')
@@ -120,7 +120,7 @@ void Log::writeLogLine(WCHAR prefix, const WCHAR* format, va_list args, bool app
 		buf[2] = L' ';
 	}
 
-	const int writtenChars = wvsprintfW(prefixLen + buf, format, args);
+	const int writtenChars = wvsprintfW(buf + prefixLen, format, args);
 
 	int suffixLen;
 	if (appendNewLine)
@@ -139,9 +139,13 @@ void Log::writeLogLine(WCHAR prefix, const WCHAR* format, va_list args, bool app
 
 BOOL Log::writeTextCodepage(const WCHAR* text, const DWORD cchWideChar)
 {
-	CHAR writeBuffer[2048];
+	CHAR writeBuffer[512];
+	DWORD numberBytesWritten;
 
-	const int numberMultiBytes = WideCharToMultiByte(
+	BOOL ok = FALSE;
+
+	int numberMultiBytes;
+	if ( (numberMultiBytes = WideCharToMultiByte(
 		_codepage
 		, 0								// dwFlags [in]
 		, text							// lpWideCharStr [in]
@@ -149,25 +153,22 @@ BOOL Log::writeTextCodepage(const WCHAR* text, const DWORD cchWideChar)
 		, writeBuffer					// lpMultiByteStr [out, optional]
 		, sizeof(writeBuffer)			// cbMultiByte [in]
 		, NULL							// lpDefaultChar[in, optional]
-		, NULL);
-
-	if (numberMultiBytes == 0)
+		, NULL)) == 0)
 	{
-		this->win32err(L"WideCharToMultiByte", L"Log::writeTextCodepage(convertToMultiByte)");
-		return FALSE;
+		this->win32err(L"WideCharToMultiByte", L"Log::writeTextCodepage");
 	}
-
-	DWORD numberBytesWritten;
-	BOOL ok = WriteFile(
+	else if ( ! (ok = WriteFile(
 		_outHandle
 		, writeBuffer
 		, numberMultiBytes
 		, &numberBytesWritten
-		, NULL);
-
-	if (!ok)
+		, NULL))) 
 	{
-		this->win32err(L"WriteFile", L"Log::writeTextCodepage(WriteFile)");
+		this->win32err(L"WriteFile", L"Log::writeTextCodepage");
+	}
+	else
+	{
+		ok = TRUE;
 	}
 
 	return ok;

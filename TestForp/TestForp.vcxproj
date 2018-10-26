@@ -152,6 +152,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="HelpReadline.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -162,6 +163,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TestReadLine.cpp" />
     <ClCompile Include="TestSubst.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +174,7 @@
   <ItemGroup>
     <Object Include="..\forp\x64\Debug\Log.obj" />
     <Object Include="..\forp\x64\Debug\pch.obj" />
+    <Object Include="..\forp\x64\Debug\readline.obj" />
     <Object Include="..\forp\x64\Debug\SubstPercentSymbols.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

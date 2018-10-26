@@ -4,7 +4,8 @@ typedef struct _opts
 {
 	int parallel;
 	bool dryrun;
-	LPWSTR cmdLineToExec;
+	LPCWSTR inputfilename;
+	LPWSTR cmdLineTemplate;
 	size_t cchcmdLineToExecSize;
 } OPTS;
 
