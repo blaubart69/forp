@@ -5,7 +5,31 @@ class HelpTempFile
 
 private:
 	HANDLE hFile;
+	HANDLE hReadHandle;
 	WCHAR tempFilename[MAX_PATH];
+
+	bool utf16bomwritten = false;
+
+	HANDLE OpenTempfile()
+	{
+		HANDLE handle =
+			CreateFileW(
+				this->tempFilename
+				, GENERIC_READ
+				, FILE_SHARE_WRITE
+				, NULL
+				, OPEN_EXISTING
+				, FILE_ATTRIBUTE_TEMPORARY
+				, NULL);
+
+		if (handle == INVALID_HANDLE_VALUE)
+		{
+			int rc = GetLastError();
+			throw new std::exception("OpenTempfile", rc);
+		}
+
+		return handle;
+	}
 
 public:
 
@@ -33,19 +57,36 @@ public:
 			int rc = GetLastError();
 			throw new std::exception("CreateFile", rc);
 		}
+
+		hReadHandle = OpenTempfile();
+
 	}
 	~HelpTempFile()
 	{
 		CloseHandle(this->hFile);
+		CloseHandle(this->hReadHandle);
+	}
+
+	HANDLE getReadHandle()
+	{
+		return this->hReadHandle;
 	}
 
 	void WriteContentW(LPCWSTR stuff)
 	{
+		if (!utf16bomwritten)
+		{
+			utf16bomwritten = true;
+			WriteUTF16LEBOM();
+		}
+
+		DWORD len = lstrlen(stuff) * sizeof(WCHAR);
+
 		DWORD written;
 		WriteFile(
 			this->hFile
 			, stuff
-			, lstrlen(stuff)
+			, len
 			, &written
 			, NULL
 		);
@@ -71,6 +112,7 @@ public:
 	{
 		char BOM[2] = { 0xFF, 0xFE };
 		WriteBuff(BOM, 2);
+		utf16bomwritten = true;
 	}
 	void WriteBuff(char* buf, int cbLen)
 	{
@@ -84,24 +126,5 @@ public:
 		);
 	}
 
-	HANDLE OpenTempfile()
-	{
-		HANDLE handle =
-			CreateFileW(
-				this->tempFilename
-				, GENERIC_READ
-				, FILE_SHARE_WRITE
-				, NULL
-				, OPEN_EXISTING
-				, FILE_ATTRIBUTE_TEMPORARY
-				, NULL);
-
-		if (handle == INVALID_HANDLE_VALUE)
-		{
-			int rc = GetLastError();
-			throw new std::exception("OpenTempfile", rc);
-		}
-
-		return handle;
-	}
+	
 };
