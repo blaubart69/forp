@@ -9,6 +9,7 @@
 
 // Headers for CppUnitTest
 #include "CppUnitTest.h"
+#include <string>
 
 // TODO: reference additional headers your program requires here
 

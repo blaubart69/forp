@@ -177,6 +177,8 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 				if (rl->readPos == (rl->readBuffer + rl->bomLength))   // readPos is at first character. skipping BOM
 				{
 					// buffer is full but no newline char
+					*line = NULL;
+					*cchLen = 0;
 					rc = ERROR_INSUFFICIENT_BUFFER;
 					break;
 				}
