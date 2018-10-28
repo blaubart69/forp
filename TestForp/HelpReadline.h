@@ -1,20 +1,21 @@
 #pragma once
 
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
 class HelpTempFile
 {
 
 private:
 	HANDLE hFile;
 	HANDLE hReadHandle;
-	WCHAR tempFilename[MAX_PATH];
 
 	bool utf16bomwritten = false;
 
-	HANDLE OpenTempfile()
+	HANDLE OpenTempfileForReading(LPCWSTR tempFilename)
 	{
 		HANDLE handle =
 			CreateFileW(
-				this->tempFilename
+				tempFilename
 				, GENERIC_READ
 				, FILE_SHARE_WRITE
 				, NULL
@@ -25,7 +26,9 @@ private:
 		if (handle == INVALID_HANDLE_VALUE)
 		{
 			int rc = GetLastError();
-			throw new std::exception("OpenTempfile", rc);
+			WCHAR err[128];
+			wsprintf(err, L"OpenTempfile() rc: %d", rc);
+			Assert::Fail(err);
 		}
 
 		return handle;
@@ -33,18 +36,20 @@ private:
 
 public:
 
-	HelpTempFile()
+	HelpTempFile(UINT unique)
 	{
+		WCHAR tempFilename[MAX_PATH];
+
 		GetTempFileNameW(
 			L"c:\\temp\\rl"
 			, L"RL_"
-			, 42
-			, this->tempFilename
+			, unique
+			, tempFilename
 		);
 
 		hFile =
 			CreateFile(
-				this->tempFilename
+				tempFilename
 				, GENERIC_WRITE
 				, FILE_SHARE_READ
 				, NULL
@@ -55,10 +60,12 @@ public:
 		if (hFile == INVALID_HANDLE_VALUE)
 		{
 			int rc = GetLastError();
-			throw new std::exception("CreateFile", rc);
+			WCHAR err[128];
+			wsprintf(err, L"CreateFile() rc: %d, [%d] [%s]", rc, unique, tempFilename);
+			Assert::Fail(err);
 		}
 
-		hReadHandle = OpenTempfile();
+		hReadHandle = OpenTempfileForReading(tempFilename);
 
 	}
 	~HelpTempFile()

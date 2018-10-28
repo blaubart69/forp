@@ -6,12 +6,16 @@ using namespace std;
 
 namespace TestForp
 {
+	volatile LONG64 counter;
+
 	TEST_CLASS(TestReadline)
 	{
 	private:
 
 		HelpTempFile* hTmp;
 		READLINE* rl;
+
+		DWORD LastRc = 0;
 
 		//
 		// Assert helper
@@ -24,7 +28,9 @@ namespace TestForp
 			DWORD rc = rl_readline(this->rl, &line, &cchLen);
 			if (rc != 0)
 			{
-				Assert::Fail( (std::wostringstream() << L"rl_readline() returned rc: " << rc).str().c_str() );
+				WCHAR err[128];
+				wsprintf(err, L"rl_readline() returned rc: %d", rc);
+				Assert::Fail( err );
 			}
 
 			int expectedLen = expectedLine == NULL ? 0 : lstrlenW(expectedLine);
@@ -40,15 +46,22 @@ namespace TestForp
 
 	public:
 		
-
+		TEST_CLASS_INITIALIZE(classInit)
+		{
+			counter = 0;
+		}
 		TEST_METHOD_INITIALIZE(initMeth)
 		{
-			hTmp = new HelpTempFile;
+			InterlockedIncrement64(&counter);
+			hTmp = new HelpTempFile((UINT)counter);
 		}
 
 		TEST_METHOD_CLEANUP(cleanMeth)
 		{
-			AssertReadline(NULL);
+			if (LastRc == 0)
+			{
+				AssertReadline(NULL);
+			}
 			delete hTmp;
 			rl_delete(rl);
 		}
@@ -126,6 +139,7 @@ namespace TestForp
 			initReadline(8);
 			DWORD rc = rl_readline(rl, &line, &cchLen);
 			Assert::IsTrue(rc == ERROR_INSUFFICIENT_BUFFER);
+			LastRc = rc;
 			Assert::IsNull(line);
 			Assert::IsTrue(0 == cchLen);
 		}
@@ -160,6 +174,14 @@ namespace TestForp
 			initReadline(64);
 			AssertReadline(L"berni");
 			AssertReadline(L"spindler");
+		}
+		TEST_METHOD(SecondLineDoesNotFitInBuffer)
+		{
+			hTmp->WriteContentA("12345\r\nabcdefghijkl");
+
+			initReadline(16);
+			AssertReadline(L"12345");
+			AssertReadline(L"abcdefghijkl");
 		}
 	};
 }

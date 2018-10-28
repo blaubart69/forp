@@ -172,11 +172,11 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 		char* newLineChar = findNewLineChar(rl->readPos, rl->readBuffer + rl->bufLen);
 		if (newLineChar == NULL)
 		{
-			if (rl->bufLen == rl->bufSize)
+			if (rl->bufLen >= rl->bufSize)
 			{
 				if (rl->readPos == (rl->readBuffer + rl->bomLength))   // readPos is at first character. skipping BOM
 				{
-					// buffer is full but no newline char
+					// no newline char AND buffer is full
 					*line = NULL;
 					*cchLen = 0;
 					rc = ERROR_INSUFFICIENT_BUFFER;
@@ -184,6 +184,10 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 				}
 				else
 				{
+					// no newline char:
+					// 1, copy remaining bytes to the begin of the buffer
+					// 2, fillBuffer()
+					// 3, try again ( while (true) )
 					size_t remainingLen = rl->bufSize - (rl->readPos - rl->readBuffer);
 					RtlMoveMemory(rl->readBuffer, rl->readPos, remainingLen);
 					rl->readPos = 0;
@@ -192,7 +196,7 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 					rc = fillBuffer(rl, rl->bufLen, &bytesRead);
 				}
 			}
-			else if (rl->bufLen < rl->bufSize)
+			else //if (rl->bufLen < rl->bufSize)
 			{
 				// buffer is not full and we have no \n
 				// --> must be the last line WITHOUT \n 
@@ -220,7 +224,7 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 
 	return rc;
 }
-void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage, BYTE* lenBOM)
+void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage, DWORD* lenBOM)
 {
 	BOOL found = FALSE;
 	*lenBOM = 0;
@@ -274,9 +278,9 @@ DWORD rl_readline(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 	}
 	else
 	{
-		DWORD bytesRead;
 		if (rl->bufLen == 0)
 		{
+			DWORD bytesRead;
 			rc = fillBuffer(rl, rl->bufLen, &bytesRead);
 			if (rc == 0)
 			{
@@ -284,27 +288,28 @@ DWORD rl_readline(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 				{
 					rl->firstRead = FALSE;
 					handleFirstRead(rl, bytesRead);
+					if (bytesRead == rl->bomLength)
+					{
+						bytesRead = 0;	// set *line to NULL, ccLen to 0
+						rl->bufLen = 0; // to skip reportLine()
+					}
+				}
+
+				if (bytesRead == 0)
+				{
+					// the previous fillBuffer filled the buffer exactly with the last bytes of the file
+					// so the last call gives us 0 bytesRead
+					*line = NULL;
+					*cchLen = 0;
 				}
 			}
 		}
 
-		if (rc == 0)
+		if (rc == 0 && rl->bufLen > 0)
 		{
-			if (bytesRead == 0)
-			{
-				// the previous fullBuffer filled the buffer exactly with the last bytes of the file
-				// so the last call gives us 0 bytesRead
-				*line = NULL;
-				*cchLen = 0;
-			}
-			else
-			{
-				rc = reportLine(rl, line, cchLen);
-			}
+			rc = reportLine(rl, line, cchLen);
 		}
 	}
 
 	return rc;
 }
-
-

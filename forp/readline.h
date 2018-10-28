@@ -13,7 +13,7 @@ typedef struct _readline
 	
 	BOOL firstRead;
 	WCHAR* lineBuffer;
-	BYTE bomLength;
+	DWORD bomLength;
 
 } READLINE;
 
@@ -23,5 +23,4 @@ extern "C" __declspec(dllimport) void __stdcall RtlMoveMemory(void *dst, const v
 
 READLINE* rl_new(const HANDLE handle, const DWORD buffersize);
 void      rl_delete(READLINE* rl);
-void reportUTF16Line(LPWSTR * line, READLINE * rl, char * lastChar, DWORD * cchLen);
 DWORD     rl_readline(READLINE * rl, LPWSTR * line, DWORD* cchLen);
