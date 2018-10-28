@@ -190,7 +190,7 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 					// 3, try again ( while (true) )
 					size_t remainingLen = rl->bufSize - (rl->readPos - rl->readBuffer);
 					RtlMoveMemory(rl->readBuffer, rl->readPos, remainingLen);
-					rl->readPos = 0;
+					rl->readPos = rl->readBuffer;
 					rl->bufLen = remainingLen;
 					DWORD bytesRead;
 					rc = fillBuffer(rl, rl->bufLen, &bytesRead);
