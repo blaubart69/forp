@@ -175,7 +175,7 @@ namespace TestForp
 			AssertReadline(L"berni");
 			AssertReadline(L"spindler");
 		}
-		TEST_METHOD(SecondLineDoesNotFitInBuffer)
+		TEST_METHOD(SecondLineDoesNotFitInBuffer_A)
 		{
 			hTmp->WriteContentA("12345\r\nabcdefghijkl");
 
@@ -183,5 +183,14 @@ namespace TestForp
 			AssertReadline(L"12345");
 			AssertReadline(L"abcdefghijkl");
 		}
+		TEST_METHOD(SecondLineDoesNotFitInBuffer_W)
+		{
+			hTmp->WriteContentW(L"12345\r\nabcdefghijkl");
+
+			initReadline(13*2);
+			AssertReadline(L"12345");
+			AssertReadline(L"abcdefghijkl");
+		}
+
 	};
 }

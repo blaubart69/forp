@@ -3,6 +3,7 @@
 READLINE* rl_new(const HANDLE handle, const DWORD buffersize)
 {
 	READLINE* rl = (READLINE*)HeapAlloc(GetProcessHeap(), 0, sizeof(READLINE));
+
 	rl->handle = handle;
 	rl->codepage = CP_UTF8;
 	rl->firstRead = TRUE;
@@ -261,7 +262,7 @@ void handleFirstRead(READLINE* rl, DWORD firstBytesRead)
 
 	if (rl->codepage != 0)
 	{
-		rl->lineBuffer = (WCHAR*)HeapAlloc(GetProcessHeap(), 0, rl->bufSize * 2);
+		rl->lineBuffer = (WCHAR*)HeapAlloc(GetProcessHeap(), 0, (SIZE_T)rl->bufSize * 2);
 	}
 }
 DWORD rl_readline(READLINE* rl, LPWSTR* line, DWORD* cchLen)
