@@ -1,4 +1,7 @@
-#include "pch.h"
+#include "readline.h"
+
+#undef RtlMoveMemory
+__declspec(dllimport) void __stdcall RtlMoveMemory(void *dst, const void *src, size_t len);
 
 READLINE* rl_new(const HANDLE handle, const DWORD buffersize)
 {
@@ -29,16 +32,16 @@ void rl_delete(READLINE* rl)
 	HeapFree(GetProcessHeap(), 0, rl);
 }
 
-char* findNewLineChar(char* startPos, char *endPos)
+static char* findNewLineChar(char* startPos, char *endPos)
 {
 	char* c = startPos;
 
-	bool found = false;
+	BOOL found = FALSE;
 	while (c <= endPos)
 	{
 		if (*c == '\n')
 		{
-			found = true;
+			found = TRUE;
 			break;
 		}
 		++c;
@@ -51,7 +54,7 @@ char* findNewLineChar(char* startPos, char *endPos)
 
 	return c;
 }
-int fillBuffer(READLINE* rl, DWORD offset, DWORD* bytesRead)
+static int fillBuffer(READLINE* rl, DWORD offset, DWORD* bytesRead)
 {
 	int rc;
 
@@ -75,7 +78,7 @@ int fillBuffer(READLINE* rl, DWORD offset, DWORD* bytesRead)
 	if (!ok)
 	{
 		rc = GetLastError();
-		Log::Instance()->win32errfunc(L"ReadFile", L"fillBuffer()");
+		//Log::Instance()->win32errfunc(L"ReadFile", L"fillBuffer()");
 	}
 	else
 	{
@@ -86,7 +89,7 @@ int fillBuffer(READLINE* rl, DWORD offset, DWORD* bytesRead)
 	return rc;
 }
 
-WCHAR* processUTF16end(WCHAR* lastchar)
+static WCHAR* processUTF16end(WCHAR* lastchar)
 {
 	if (*lastchar == L'\n')
 	{
@@ -104,9 +107,9 @@ WCHAR* processUTF16end(WCHAR* lastchar)
 
 	return lastchar;
 }
-int calcMultibyteLenWithoutNewline(const char* firstChar, const char* lastChar)
+static SIZE_T calcMultibyteLenWithoutNewline(const char* firstChar, const char* lastChar)
 {
-	int len;
+	SIZE_T len;
 
 	if (*lastChar == '\n')
 	{
@@ -126,7 +129,7 @@ int calcMultibyteLenWithoutNewline(const char* firstChar, const char* lastChar)
 
 	return len;
 }
-DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD* cchLen)
+static DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD* cchLen)
 {
 	DWORD rc = 0;
 
@@ -139,7 +142,7 @@ DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD* cchLen
 	}
 	else
 	{
-		int cbMultiByte = calcMultibyteLenWithoutNewline(rl->readPos, lastChar);
+		SIZE_T cbMultiByte = calcMultibyteLenWithoutNewline(rl->readPos, lastChar);
 
 		int widecharsWritten;
 		if ((widecharsWritten = MultiByteToWideChar(
@@ -152,7 +155,7 @@ DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD* cchLen
 			)) == 0)
 		{
 			rc = GetLastError();
-			Log::Instance()->win32err(L"MultiByteToWideChar", L"reportLineFromTo()");
+			//Log::Instance()->win32err(L"MultiByteToWideChar", L"reportLineFromTo()");
 		}
 		else
 		{
@@ -164,7 +167,14 @@ DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD* cchLen
 
 	return rc;
 }
-DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
+static void MoveRemainingDataToBeginOfBuffer(READLINE * rl)
+{
+	size_t remainingLen = rl->bufSize - (rl->readPos - rl->readBuffer);
+	RtlMoveMemory(rl->readBuffer, rl->readPos, remainingLen);
+	rl->readPos = rl->readBuffer;
+	rl->bufLen = remainingLen;
+}
+static DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 {
 	DWORD rc = 0;
 
@@ -185,14 +195,7 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 				}
 				else
 				{
-					// no newline char:
-					// 1, copy remaining bytes to the begin of the buffer
-					// 2, fillBuffer()
-					// 3, try again ( while (true) )
-					size_t remainingLen = rl->bufSize - (rl->readPos - rl->readBuffer);
-					RtlMoveMemory(rl->readBuffer, rl->readPos, remainingLen);
-					rl->readPos = rl->readBuffer;
-					rl->bufLen = remainingLen;
+					MoveRemainingDataToBeginOfBuffer(rl);
 					DWORD bytesRead;
 					rc = fillBuffer(rl, rl->bufLen, &bytesRead);
 				}
@@ -201,11 +204,10 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 			{
 				// buffer is not full and we have no \n
 				// --> must be the last line WITHOUT \n 
-				int charSize = rl->codepage == 0 ? 2 : 1;
+				BYTE  charSize = rl->codepage == 0 ? 2 : 1;
 				char *lastChar = rl->readBuffer + rl->bufLen - charSize;
 				rc = reportLineFromTo(rl, lastChar, line, cchLen);
-				// set readPos > len to signal the end
-				rl->readPos = rl->readBuffer + rl->bufLen;
+				rl->readPos = rl->readBuffer + rl->bufLen;			// set readPos > len to signal the end
 				break;
 			}
 		}
@@ -225,7 +227,7 @@ DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 
 	return rc;
 }
-void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage, DWORD* lenBOM)
+static void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage, BYTE* lenBOM)
 {
 	BOOL found = FALSE;
 	*lenBOM = 0;
@@ -255,7 +257,7 @@ void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage, DWORD*
 		}
 	}
 }
-void handleFirstRead(READLINE* rl, DWORD firstBytesRead)
+static void handleFirstRead(READLINE* rl, DWORD firstBytesRead)
 {
 	tryDetectBOM((unsigned char*)rl->readBuffer, firstBytesRead, &rl->codepage, &rl->bomLength);
 	rl->readPos += rl->bomLength;
@@ -265,11 +267,15 @@ void handleFirstRead(READLINE* rl, DWORD firstBytesRead)
 		rl->lineBuffer = (WCHAR*)HeapAlloc(GetProcessHeap(), 0, (SIZE_T)rl->bufSize * 2);
 	}
 }
+static BOOL isEOF(const READLINE* rl)
+{
+	return rl->readPos > (rl->readBuffer + rl->bufLen - 1);
+}
 DWORD rl_readline(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 {
 	DWORD rc = 0;
 
-	if (rl->bufLen > 0 && (rl->readPos > (rl->readBuffer + rl->bufLen - 1)) )
+	if (rl->bufLen > 0 && isEOF(rl) )
 	{
 		// we enter ReadLine and the readPointer is past the bufLen.
 		// means there is no more data.

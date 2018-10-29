@@ -50,7 +50,7 @@
     <ClCompile Include="getopts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="readline.cpp">
+    <ClCompile Include="readline.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
