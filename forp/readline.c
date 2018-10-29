@@ -8,7 +8,8 @@ READLINE* rl_new(const HANDLE handle, const DWORD buffersize)
 	READLINE* rl = (READLINE*)HeapAlloc(GetProcessHeap(), 0, sizeof(READLINE));
 
 	rl->handle = handle;
-	rl->codepage = CP_UTF8;
+	rl->codepage = CP_ACP;
+	rl->convertToCodepage = TRUE;
 	rl->firstRead = TRUE;
 
 	rl->bufSize = buffersize;
@@ -89,7 +90,7 @@ static int fillBuffer(READLINE* rl, DWORD offset, DWORD* bytesRead)
 	return rc;
 }
 
-static WCHAR* processUTF16end(WCHAR* lastchar)
+static WCHAR* replaceNewlineWithZeroUTF16(WCHAR* lastchar)
 {
 	if (*lastchar == L'\n')
 	{
@@ -133,14 +134,7 @@ static DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD*
 {
 	DWORD rc = 0;
 
-	if (rl->codepage == 0) // UTF-16 LE
-	{
-		*line = (WCHAR*)(rl->readPos);
-		WCHAR* lastCharW = (WCHAR*)(lastChar);
-		lastCharW = processUTF16end(lastCharW);
-		*cchLen = lastCharW - *line + 1;
-	}
-	else
+	if (rl->convertToCodepage)
 	{
 		SIZE_T cbMultiByte = calcMultibyteLenWithoutNewline(rl->readPos, lastChar);
 
@@ -164,6 +158,13 @@ static DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD*
 			*cchLen = widecharsWritten;
 		}
 	}
+	else
+	{
+		*line = (WCHAR*)(rl->readPos);
+		WCHAR* lastCharW = (WCHAR*)(lastChar);
+		lastCharW = replaceNewlineWithZeroUTF16(lastCharW);
+		*cchLen = lastCharW - *line + 1;
+	}
 
 	return rc;
 }
@@ -177,6 +178,8 @@ static void MoveRemainingDataToBeginOfBuffer(READLINE * rl)
 static DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 {
 	DWORD rc = 0;
+
+	BYTE  charSize = rl->convertToCodepage ? 1 : 2;
 
 	while (rc == 0)
 	{
@@ -204,7 +207,6 @@ static DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 			{
 				// buffer is not full and we have no \n
 				// --> must be the last line WITHOUT \n 
-				BYTE  charSize = rl->codepage == 0 ? 2 : 1;
 				char *lastChar = rl->readBuffer + rl->bufLen - charSize;
 				rc = reportLineFromTo(rl, lastChar, line, cchLen);
 				rl->readPos = rl->readBuffer + rl->bufLen;			// set readPos > len to signal the end
@@ -215,7 +217,7 @@ static DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 		{
 			rc = reportLineFromTo(rl, newLineChar, line, cchLen);
 
-			rl->readPos = newLineChar + ( rl->codepage == 0 ? 2 : 1 );
+			rl->readPos = newLineChar + charSize;
 			if (rl->readPos > (rl->readBuffer + rl->bufSize - 1 ))		// NEW readPos is past bufSize
 			{
 				rl->readPos = 0;
@@ -227,11 +229,9 @@ static DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 
 	return rc;
 }
-static void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage, BYTE* lenBOM)
+static void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage, BYTE* lenBOM, BOOL* UTF16found)
 {
-	BOOL found = FALSE;
 	*lenBOM = 0;
-	*codepage = CP_UTF8;
 
 	if (bufLen >= 2)
 	{
@@ -239,9 +239,8 @@ static void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage,
 		if (   buf[0] == 0xFF 
 			&& buf[1] == 0xFE)
 		{
-			found = TRUE;
-			*codepage = 0;
 			*lenBOM = 2;
+			*UTF16found = TRUE;
 		}
 		else if (bufLen >= 3)
 		{
@@ -250,7 +249,6 @@ static void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage,
 				&& buf[1] == 0xBB
 				&& buf[2] == 0xBF)
 			{
-				found = TRUE;
 				*codepage = CP_UTF8;
 				*lenBOM = 3;
 			}
@@ -259,11 +257,18 @@ static void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage,
 }
 static void handleFirstRead(READLINE* rl, DWORD firstBytesRead)
 {
-	tryDetectBOM((unsigned char*)rl->readBuffer, firstBytesRead, &rl->codepage, &rl->bomLength);
+	BOOL UTF16found = FALSE;
+
+	tryDetectBOM((unsigned char*)rl->readBuffer, firstBytesRead, &rl->codepage, &rl->bomLength, &UTF16found);
 	rl->readPos += rl->bomLength;
 
-	if (rl->codepage != 0)
+	if (UTF16found)
 	{
+		rl->convertToCodepage = FALSE;
+	}
+	else
+	{
+		// create a buffer for line conversions
 		rl->lineBuffer = (WCHAR*)HeapAlloc(GetProcessHeap(), 0, (SIZE_T)rl->bufSize * 2);
 	}
 }

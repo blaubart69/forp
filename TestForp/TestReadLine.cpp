@@ -159,6 +159,15 @@ namespace TestForp
 			AssertReadline(L"berni");
 			AssertReadline(L"spindler");
 		}
+		TEST_METHOD(TwoLinesWithinBufferUTF8)
+		{
+			hTmp->WriteUTF8BOM();
+			hTmp->WriteContentA("berni\r\nspindler\r\n");
+
+			initReadline(64);
+			AssertReadline(L"berni");
+			AssertReadline(L"spindler");
+		}
 		TEST_METHOD(TwoLinesWithinBufferW_secondWithoutCrLf)
 		{
 			hTmp->WriteContentW(L"berni\r\nspindler");
@@ -169,6 +178,15 @@ namespace TestForp
 		}
 		TEST_METHOD(TwoLinesWithinBufferA_secondWithoutCrLf)
 		{
+			hTmp->WriteContentA("berni\r\nspindler");
+
+			initReadline(64);
+			AssertReadline(L"berni");
+			AssertReadline(L"spindler");
+		}
+		TEST_METHOD(TwoLinesWithinBufferUTF8_secondWithoutCrLf)
+		{
+			hTmp->WriteUTF8BOM();
 			hTmp->WriteContentA("berni\r\nspindler");
 
 			initReadline(64);
@@ -191,6 +209,12 @@ namespace TestForp
 			AssertReadline(L"12345");
 			AssertReadline(L"abcdefghijkl");
 		}
+		TEST_METHOD(ReadUmlautAsUTF8)
+		{
+			hTmp->WriteContentA("Börnie");
 
+			initReadline(16);
+			AssertReadline(L"Börnie");
+		}
 	};
 }

@@ -12,6 +12,7 @@ typedef struct _readline
 {
 	HANDLE handle;
 	UINT codepage;
+	BOOL convertToCodepage;
 
 	DWORD bufSize;
 	DWORD bufLen;
