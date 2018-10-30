@@ -35,3 +35,33 @@ static void MoveRemainingDataToBeginOfBuffer(READLINE * rl);
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+class Readline {
+public:
+	Readline(HANDLE handle, DWORD buffersize)
+	{
+		rl = rl_new(handle, buffersize);
+		line = NULL;
+		cchLen = 0;
+	}
+	~Readline()
+	{
+
+		rl_delete(rl);
+	}
+	DWORD     nextLine()
+	{
+		return rl_readline(
+			this->rl
+			, &this->line
+			, &this->cchLen);
+	}
+
+	LPWSTR line;
+	DWORD  cchLen;
+
+private:
+	READLINE* rl;
+};
+#endif
