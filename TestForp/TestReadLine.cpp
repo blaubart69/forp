@@ -216,5 +216,170 @@ namespace TestForp
 			initReadline(16);
 			AssertReadline(L"Börnie");
 		}
+		//
+		// emtpy line
+		//
+		TEST_METHOD(OneEmtpyLineA)
+		{
+			hTmp->WriteContentA("\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+		}
+		TEST_METHOD(OneEmtpyLineW)
+		{
+			hTmp->WriteContentW(L"\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+		}
+		TEST_METHOD(OneEmtpyLineUTF8)
+		{
+			hTmp->WriteUTF8BOM();
+			hTmp->WriteContentA("\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+		}
+		//
+		// emtpy lines
+		//
+		TEST_METHOD(TwoEmtpyLineA)
+		{
+			hTmp->WriteContentA("\r\n\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(TwoEmtpyLineW)
+		{
+			hTmp->WriteContentW(L"\r\n\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(TwoEmtpyLineUTF8)
+		{
+			hTmp->WriteUTF8BOM();
+			hTmp->WriteContentA("\r\n\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		//
+		// buffer full with newlines 
+		//
+		TEST_METHOD(SixemptyLinesA)
+		{
+			hTmp->WriteContentA("\r\n\r\n\r\n\r\n\r\n\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(SixemptyLinesW)
+		{
+			hTmp->WriteContentW(L"\r\n\r\n\r\n\r\n\r\n\r\n");
+			initReadline(128);
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(SixemptyLinesUTF8)
+		{
+			hTmp->WriteUTF8BOM();
+			hTmp->WriteContentA("\r\n\r\n\r\n\r\n\r\n\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(SixEmptyLinesWithTooSmallBufferA)
+		{
+			hTmp->WriteContentA("\r\n\r\n\r\n\r\n\r\n\r\n");
+			initReadline(4);
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(SixEmptyLinesWithTooSmallBufferW)
+		{
+			hTmp->WriteContentW(L"\r\n\r\n\r\n\r\n\r\n\r\n");
+			initReadline(8);
+
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		//
+		// UNIX ...
+		//
+		TEST_METHOD(UnixOneEmptyLineA)
+		{
+			hTmp->WriteContentA("\n");
+			initReadline(6);
+			AssertReadline(L"");
+		}
+		TEST_METHOD(UnixTwoEmptyLineA)
+		{
+			hTmp->WriteContentA("\n\n");
+			initReadline(6);
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(UnixOneEmptyLineW)
+		{
+			hTmp->WriteContentW(L"\n");
+			initReadline(6);
+			AssertReadline(L"");
+		}
+		TEST_METHOD(UnixTwoEmptyLineW)
+		{
+			hTmp->WriteContentW(L"\n\n");
+			initReadline(6);
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(UnixOneLineWithLfA)
+		{
+			hTmp->WriteContentA("Berni\n");
+			initReadline(6);
+			AssertReadline(L"Berni");
+		}
+		TEST_METHOD(UnixOneLineWithLfW)
+		{
+			hTmp->WriteContentW(L"Berni\n");
+			initReadline(16);
+			AssertReadline(L"Berni");
+		}
+		TEST_METHOD(UnixOneLineWithLfUTF8_bufferTooSmall)
+		{
+			hTmp->WriteUTF8BOM();
+			hTmp->WriteContentA("Berni\n");
+			initReadline(6);
+
+			LPWSTR line;
+			DWORD  cchLen;
+
+			initReadline(8);
+			DWORD rc = rl_readline(rl, &line, &cchLen);
+			Assert::IsTrue(rc == ERROR_INSUFFICIENT_BUFFER);
+			LastRc = rc;
+			Assert::IsNull(line);
+			Assert::IsTrue(0 == cchLen);
+		}
+
 	};
 }

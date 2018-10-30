@@ -30,3 +30,4 @@ extern "C" void mainCRTStartup(void)
 
 	ExitProcess(Exitcode);
 }
+
