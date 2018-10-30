@@ -184,7 +184,9 @@ static DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 	while (rc == 0)
 	{
 		//char* newLineChar = findNewLineChar(rl->readPos, rl->readBuffer + rl->bufLen);
-		char* newLineChar = memchr(rl->readPos, '\n', rl->bufLen);
+		size_t charsToSeach = (rl->readBuffer + rl->bufLen) - rl->readPos;
+		char* newLineChar = memchr(rl->readPos, '\n', charsToSeach);
+
 		if (newLineChar == NULL)
 		{
 			if (rl->bufLen >= rl->bufSize)

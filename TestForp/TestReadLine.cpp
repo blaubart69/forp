@@ -380,6 +380,15 @@ namespace TestForp
 			Assert::IsNull(line);
 			Assert::IsTrue(0 == cchLen);
 		}
-
+		TEST_METHOD(LastLineHasOnlyOneCharA)
+		{
+			hTmp->WriteContentA("11111\r\n22222\r\n33333\r\n44444\r\nx");
+			initReadline(21);
+			AssertReadline(L"11111");
+			AssertReadline(L"22222");
+			AssertReadline(L"33333");
+			AssertReadline(L"44444");
+			AssertReadline(L"x");
+		}
 	};
 }

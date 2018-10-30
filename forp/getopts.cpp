@@ -71,7 +71,7 @@ void concatArgsToOneString(int argc, wchar_t *argv[], int startIdx, LPWSTR* line
 	*cchLen = lstrlenW(GetCommandLineW());
 	*line = (LPWSTR)LocalAlloc(LMEM_FIXED, (*cchLen) * sizeof(WCHAR));
 
-	for (int i = startIdx; i < argc; ++startIdx)
+	for (int i = startIdx; i < argc; ++i)
 	{
 		StrCatBuffW(*line, argv[i], (int)*cchLen);
 		if (i + 1 < argc)
