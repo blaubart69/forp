@@ -33,11 +33,16 @@ void rl_delete(READLINE* rl)
 	HeapFree(GetProcessHeap(), 0, rl);
 }
 
+/*
+#ifdef _DEBUG
 void* memchr(const void *s, int c, size_t n)
 {
 	const unsigned char*  p = (const unsigned char*)s;
 	const unsigned char*  end = p + n;
 	for (;;) {
+		if (p >= end || p[0] == c) break; p++;
+		if (p >= end || p[0] == c) break; p++;
+		if (p >= end || p[0] == c) break; p++;
 		if (p >= end || p[0] == c) break; p++;
 	}
 	if (p >= end)
@@ -45,17 +50,15 @@ void* memchr(const void *s, int c, size_t n)
 	else
 		return (void*)p;
 }
+#endif 
+*/
+static BOOL isEOF(const READLINE* rl)
+{
+	return rl->readPos > (rl->readBuffer + rl->bufLen - 1);
+}
 static int fillBuffer(READLINE* rl, DWORD offset, DWORD* bytesRead)
 {
 	int rc;
-
-	/*
-	if (rl->writePos + 1 >= rl->bufSize)
-	{
-		Log::Instance()->err(L"buffer full (fillBuffer) writePos [%ud] bufSize [%ud]", rl->writePos, rl->bufSize);
-		return ERROR_INSUFFICIENT_BUFFER;
-	}
-	*/
 
 	DWORD bytesToRead = rl->bufSize - offset;
 
@@ -269,10 +272,7 @@ static void handleFirstRead(READLINE* rl, DWORD firstBytesRead)
 		rl->lineBuffer = (WCHAR*)HeapAlloc(GetProcessHeap(), 0, (SIZE_T)rl->bufSize * 2);
 	}
 }
-static BOOL isEOF(const READLINE* rl)
-{
-	return rl->readPos > (rl->readBuffer + rl->bufLen - 1);
-}
+
 DWORD rl_readline(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 {
 	DWORD rc = 0;
