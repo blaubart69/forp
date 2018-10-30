@@ -390,5 +390,17 @@ namespace TestForp
 			AssertReadline(L"44444");
 			AssertReadline(L"x");
 		}
+		TEST_METHOD(LastLineHasOnlyOneCharWithOnlyEmptyLinesBeforeA)
+		{
+			hTmp->WriteContentA("\n\n\n\n\n\nx");
+			initReadline(21);
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"x");
+		}
 	};
 }

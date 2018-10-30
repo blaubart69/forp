@@ -69,7 +69,8 @@ bool getopts(int argc, wchar_t *argv[], OPTS* opts)
 void concatArgsToOneString(int argc, wchar_t *argv[], int startIdx, LPWSTR* line, SIZE_T* cchLen)
 {
 	*cchLen = lstrlenW(GetCommandLineW());
-	*line = (LPWSTR)LocalAlloc(LMEM_FIXED, (*cchLen) * sizeof(WCHAR));
+	*line = (LPWSTR)HeapAlloc(GetProcessHeap(), 0, (*cchLen) * sizeof(WCHAR));
+	*line[0] = L'\0';
 
 	for (int i = startIdx; i < argc; ++i)
 	{
