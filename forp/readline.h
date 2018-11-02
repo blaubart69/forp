@@ -26,11 +26,11 @@ typedef struct _readline
 
 } READLINE;
 
-READLINE* rl_new(const HANDLE handle, const DWORD buffersize);
-void      rl_delete(READLINE* rl);
-DWORD     rl_readline(READLINE * rl, LPWSTR * line, DWORD* cchLen);
+READLINE* rl_new     (_In_ const HANDLE handle, _In_ const DWORD buffersize);
+void      rl_delete  (_In_ READLINE* rl);
+DWORD     rl_readline(_Inout_ READLINE * rl, _Out_ LPWSTR * line, _Out_ DWORD* cchLen);
 
-static void MoveRemainingDataToBeginOfBuffer(READLINE * rl);
+//static void MoveRemainingDataToBeginOfBuffer(READLINE * rl);
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,7 @@
 #undef RtlMoveMemory
 __declspec(dllimport) void __stdcall RtlMoveMemory(void *dst, const void *src, size_t len);
 
-READLINE* rl_new(const HANDLE handle, const DWORD buffersize)
+READLINE* rl_new(_In_ const HANDLE handle, _In_ const DWORD buffersize)
 {
 	READLINE* rl = (READLINE*)HeapAlloc(GetProcessHeap(), 0, sizeof(READLINE));
 
@@ -23,7 +23,7 @@ READLINE* rl_new(const HANDLE handle, const DWORD buffersize)
 
 	return rl;
 }
-void rl_delete(READLINE* rl)
+void rl_delete(_Inout_ READLINE* rl)
 {
 	HeapFree(GetProcessHeap(), 0, rl->readBuffer);
 	if (rl->lineBuffer != NULL)
@@ -52,11 +52,11 @@ void* memchr(const void *s, int c, size_t n)
 }
 #endif 
 */
-static BOOL isEOF(const READLINE* rl)
+static BOOL isEOF(_In_ const READLINE* rl)
 {
 	return rl->readPos > (rl->readBuffer + rl->bufLen - 1);
 }
-static int fillBuffer(READLINE* rl, DWORD offset, DWORD* bytesRead)
+static int fillBuffer(READLINE* rl, _In_ DWORD offset, _Out_ DWORD* bytesRead)
 {
 	int rc;
 
@@ -83,7 +83,7 @@ static int fillBuffer(READLINE* rl, DWORD offset, DWORD* bytesRead)
 	return rc;
 }
 
-static WCHAR* replaceNewlineWithZeroUTF16(WCHAR* lastchar)
+static WCHAR* replaceNewlineWithZeroUTF16(_Inout_ WCHAR* lastchar)
 {
 	if (*lastchar == L'\n')
 	{
@@ -101,7 +101,7 @@ static WCHAR* replaceNewlineWithZeroUTF16(WCHAR* lastchar)
 
 	return lastchar;
 }
-static SIZE_T calcMultibyteLenWithoutNewline(const char* firstChar, const char* lastChar)
+static SIZE_T calcMultibyteLenWithoutNewline(_In_ const char* firstChar, _In_ const char* lastChar)
 {
 	SIZE_T len;
 
@@ -123,7 +123,7 @@ static SIZE_T calcMultibyteLenWithoutNewline(const char* firstChar, const char* 
 
 	return len;
 }
-static DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD* cchLen)
+static DWORD reportLineFromTo(_Inout_ READLINE* rl, _In_ char* lastChar, _Out_ LPWSTR* line, _Out_ DWORD* cchLen)
 {
 	DWORD rc = 0;
 
@@ -150,6 +150,7 @@ static DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD*
 			)) == 0)
 			{
 				rc = GetLastError();
+				*cchLen = 0;
 				//Log::Instance()->win32err(L"MultiByteToWideChar", L"reportLineFromTo()");
 			}
 		}
@@ -169,16 +170,18 @@ static DWORD reportLineFromTo(READLINE* rl, char* lastChar, LPWSTR* line, DWORD*
 
 	return rc;
 }
-static void MoveRemainingDataToBeginOfBuffer(READLINE * rl)
+static void MoveRemainingDataToBeginOfBuffer(_Inout_ READLINE * rl)
 {
 	size_t remainingLen = rl->bufSize - (rl->readPos - rl->readBuffer);
 	RtlMoveMemory(rl->readBuffer, rl->readPos, remainingLen);
 	rl->readPos = rl->readBuffer;
 	rl->bufLen = remainingLen;
 }
-static DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
+static DWORD reportLine(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* cchLen)
 {
 	DWORD rc = 0;
+	*cchLen = 0;
+	*line = NULL;
 	BYTE  charSize = rl->convertToCodepage ? 1 : 2;
 
 	while (rc == 0)
@@ -230,7 +233,7 @@ static DWORD reportLine(READLINE* rl, LPWSTR* line, DWORD* cchLen)
 
 	return rc;
 }
-static void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage, BYTE* lenBOM, BOOL* UTF16found)
+static void tryDetectBOM(_In_ const unsigned char* buf, _In_ DWORD bufLen, _Inout_ UINT* codepage, _Out_ BYTE* lenBOM, _Out_ BOOL* UTF16found)
 {
 	*lenBOM = 0;
 
@@ -256,7 +259,7 @@ static void tryDetectBOM(const unsigned char* buf, DWORD bufLen, UINT* codepage,
 		}
 	}
 }
-static void handleFirstRead(READLINE* rl, DWORD firstBytesRead)
+static void handleFirstRead(_Inout_ READLINE* rl, _In_ DWORD firstBytesRead)
 {
 	BOOL UTF16found = FALSE;
 
@@ -274,7 +277,7 @@ static void handleFirstRead(READLINE* rl, DWORD firstBytesRead)
 	}
 }
 
-DWORD rl_readline(READLINE* rl, LPWSTR* line, DWORD* cchLen)
+DWORD rl_readline(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* cchLen)
 {
 	DWORD rc = 0;
 
