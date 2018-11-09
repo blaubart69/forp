@@ -82,7 +82,6 @@ static int fillBuffer(READLINE* rl, _In_ DWORD offset, _Out_ DWORD* bytesRead)
 
 	return rc;
 }
-
 static WCHAR* replaceNewlineWithZeroUTF16(_Inout_ WCHAR* lastchar)
 {
 	if (*lastchar == L'\n')
@@ -182,7 +181,7 @@ static DWORD reportLine(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* c
 	DWORD rc = 0;
 	*cchLen = 0;
 	*line = NULL;
-	BYTE  charSize = rl->convertToCodepage ? 1 : 2;
+	
 
 	while (rc == 0)
 	{
@@ -211,7 +210,7 @@ static DWORD reportLine(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* c
 			else //if (rl->bufLen < rl->bufSize)
 			{
 				// buffer is not full and we have no \n --> must be the last line WITHOUT \n 
-				char *lastChar = rl->readBuffer + rl->bufLen - charSize;
+				char *lastChar = rl->readBuffer + rl->bufLen - rl->charSize;
 				rc = reportLineFromTo(rl, lastChar, line, cchLen);
 				rl->readPos = rl->readBuffer + rl->bufLen;			// set readPos > len to signal the end
 				break;
@@ -221,7 +220,7 @@ static DWORD reportLine(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* c
 		{
 			rc = reportLineFromTo(rl, newLineChar, line, cchLen);
 
-			rl->readPos = newLineChar + charSize;
+			rl->readPos = newLineChar + rl->charSize;
 			if (rl->readPos > (rl->readBuffer + rl->bufSize - 1 ))		// NEW readPos is past bufSize
 			{
 				rl->readPos = rl->readBuffer;
@@ -269,14 +268,17 @@ static void handleFirstRead(_Inout_ READLINE* rl, _In_ DWORD firstBytesRead)
 	if (UTF16found)
 	{
 		rl->convertToCodepage = FALSE;
+		rl->charSize = 2;
 	}
 	else
 	{
+		rl->charSize = 1;
 		// create a buffer for line conversions
 		rl->lineBuffer = (WCHAR*)HeapAlloc(GetProcessHeap(), 0, (SIZE_T)rl->bufSize * 2);
 	}
-}
 
+	BYTE  charSize = rl->convertToCodepage ? 1 : 2;
+}
 DWORD rl_readline(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* cchLen)
 {
 	DWORD rc = 0;

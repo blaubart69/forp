@@ -20,9 +20,10 @@ typedef struct _readline
 	char* readBuffer;
 	char* readPos;
 	
-	BOOL firstRead;
+	BOOL   firstRead;
 	WCHAR* lineBuffer;
-	BYTE bomLength;
+	BYTE   bomLength;
+	BYTE   charSize;
 
 } READLINE;
 
