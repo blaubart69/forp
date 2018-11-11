@@ -14,7 +14,6 @@ READLINE* rl_new(_In_ const HANDLE handle, _In_ const DWORD buffersize)
 
 	rl->bufSize = buffersize;
 	rl->bufLen = 0;
-	rl->bomLength = 0;
 
 	rl->readBuffer = (char*)HeapAlloc(GetProcessHeap(), 0, rl->bufSize);
 	rl->lineBuffer = NULL;
@@ -56,15 +55,15 @@ static BOOL isEOF(_In_ const READLINE* rl)
 {
 	return rl->readPos > (rl->readBuffer + rl->bufLen - 1);
 }
-static int fillBuffer(READLINE* rl, _In_ DWORD offset, _Out_ DWORD* bytesRead)
+static int fillBuffer(READLINE* rl, _Out_ DWORD* bytesRead)
 {
 	int rc;
 
-	DWORD bytesToRead = rl->bufSize - offset;
+	DWORD bytesToRead = rl->bufSize - rl->bufLen;
 
 	BOOL ok = ReadFile(
 		rl->handle
-		, rl->readBuffer + offset
+		, rl->readBuffer + rl->bufLen
 		, bytesToRead
 		, bytesRead
 		, NULL);
@@ -76,7 +75,7 @@ static int fillBuffer(READLINE* rl, _In_ DWORD offset, _Out_ DWORD* bytesRead)
 	}
 	else
 	{
-		rl->bufLen = offset + *bytesRead;
+		rl->bufLen += *bytesRead;
 		rc = 0;
 	}
 
@@ -171,62 +170,75 @@ static DWORD reportLineFromTo(_Inout_ READLINE* rl, _In_ char* lastChar, _Out_ L
 }
 static void MoveRemainingDataToBeginOfBuffer(_Inout_ READLINE * rl)
 {
-	size_t remainingLen = rl->bufSize - (rl->readPos - rl->readBuffer);
+	size_t remainingLen = rl->bufLen - (rl->readPos - rl->readBuffer);
 	RtlMoveMemory(rl->readBuffer, rl->readPos, remainingLen);
 	rl->readPos = rl->readBuffer;
 	rl->bufLen = remainingLen;
+}
+static DWORD handleNoNewLine(_Inout_ READLINE* rl, _Out_ BOOL* searchNewline, _Out_ LPWSTR* line, _Out_ DWORD* cchLen)
+{
+	DWORD rc = 0;
+
+	if (rl->bufLen < rl->bufSize)
+	{
+		// buffer is not full and we have no \n --> must be the last line WITHOUT \n 
+		char *lastChar = rl->readBuffer + rl->bufLen - rl->charSize;
+		rc = reportLineFromTo(rl, lastChar, line, cchLen);
+		rl->readPos = rl->readBuffer + rl->bufLen;			// set readPos > len to signal the end
+		*searchNewline = FALSE;
+	}
+	else if (rl->bufLen == rl->bufSize)
+	{
+		if (rl->readPos > rl->readBuffer)   
+		{
+			MoveRemainingDataToBeginOfBuffer(rl);
+			DWORD bytesRead;
+			rc = fillBuffer(rl, &bytesRead);
+			*searchNewline = TRUE;
+		}
+		else
+		{
+			// no newline char AND buffer is full
+			*line = NULL;
+			*cchLen = 0;
+			rc = ERROR_INSUFFICIENT_BUFFER;
+			*searchNewline = FALSE;
+		}
+	}
+	else
+	{
+		// bufLen > bufSize ==> BAD!
+		rc = 998;
+	}
+
+	return rc;
 }
 static DWORD reportLine(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* cchLen)
 {
 	DWORD rc = 0;
 	*cchLen = 0;
 	*line = NULL;
-	
+	BOOL searchNewLine = TRUE;
 
-	while (rc == 0)
+	while (rc == 0 && searchNewLine)
 	{
 		size_t charsToSeach = (rl->readBuffer + rl->bufLen) - rl->readPos;
 		char* newLineChar = memchr(rl->readPos, '\n', charsToSeach);
 
 		if (newLineChar == NULL)
 		{
-			if (rl->bufLen >= rl->bufSize)
-			{
-				if (rl->readPos == (rl->readBuffer + rl->bomLength))   // readPos is at first character. skipping BOM
-				{
-					// no newline char AND buffer is full
-					*line = NULL;
-					*cchLen = 0;
-					rc = ERROR_INSUFFICIENT_BUFFER;
-					break;
-				}
-				else
-				{
-					MoveRemainingDataToBeginOfBuffer(rl);
-					DWORD bytesRead;
-					rc = fillBuffer(rl, rl->bufLen, &bytesRead);
-				}
-			}
-			else //if (rl->bufLen < rl->bufSize)
-			{
-				// buffer is not full and we have no \n --> must be the last line WITHOUT \n 
-				char *lastChar = rl->readBuffer + rl->bufLen - rl->charSize;
-				rc = reportLineFromTo(rl, lastChar, line, cchLen);
-				rl->readPos = rl->readBuffer + rl->bufLen;			// set readPos > len to signal the end
-				break;
-			}
+			rc = handleNoNewLine(rl, &searchNewLine, line, cchLen);
 		}
 		else
 		{
 			rc = reportLineFromTo(rl, newLineChar, line, cchLen);
-
 			rl->readPos = newLineChar + rl->charSize;
-			if (rl->readPos > (rl->readBuffer + rl->bufSize - 1 ))		// NEW readPos is past bufSize
+			if ( isEOF(rl) )
 			{
 				rl->readPos = rl->readBuffer;
-				rl->bufLen = 0;			// set both to 0 to read data into the buffer on the next call
+				rl->bufLen = 0;
 			}
-			break;
+			searchNewLine = FALSE;
 		}
 	} 
 
@@ -258,12 +270,12 @@ static void tryDetectBOM(_In_ const unsigned char* buf, _In_ DWORD bufLen, _Inou
 		}
 	}
 }
-static void handleFirstRead(_Inout_ READLINE* rl, _In_ DWORD firstBytesRead)
+static void handleFirstRead(_Inout_ READLINE* rl, _Out_ BYTE* lenBOM)
 {
 	BOOL UTF16found = FALSE;
 
-	tryDetectBOM((unsigned char*)rl->readBuffer, firstBytesRead, &rl->codepage, &rl->bomLength, &UTF16found);
-	rl->readPos += rl->bomLength;
+	tryDetectBOM((unsigned char*)rl->readBuffer, rl->bufLen, &rl->codepage, lenBOM, &UTF16found);
+	rl->readPos += *lenBOM;
 
 	if (UTF16found)
 	{
@@ -276,8 +288,6 @@ static void handleFirstRead(_Inout_ READLINE* rl, _In_ DWORD firstBytesRead)
 		// create a buffer for line conversions
 		rl->lineBuffer = (WCHAR*)HeapAlloc(GetProcessHeap(), 0, (SIZE_T)rl->bufSize * 2);
 	}
-
-	BYTE  charSize = rl->convertToCodepage ? 1 : 2;
 }
 DWORD rl_readline(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* cchLen)
 {
@@ -296,14 +306,15 @@ DWORD rl_readline(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* cchLen)
 		if (rl->bufLen == 0)
 		{
 			DWORD bytesRead;
-			rc = fillBuffer(rl, rl->bufLen, &bytesRead);
+			rc = fillBuffer(rl, &bytesRead);
 			if (rc == 0)
 			{
 				if (rl->firstRead)
 				{
 					rl->firstRead = FALSE;
-					handleFirstRead(rl, bytesRead);
-					if (bytesRead == rl->bomLength)
+					BYTE lenBOM;
+					handleFirstRead(rl, &lenBOM);
+					if (bytesRead == lenBOM)
 					{
 						bytesRead = 0;	// set *line to NULL, ccLen to 0
 						rl->bufLen = 0; // to skip reportLine()

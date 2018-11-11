@@ -22,7 +22,6 @@ typedef struct _readline
 	
 	BOOL   firstRead;
 	WCHAR* lineBuffer;
-	BYTE   bomLength;
 	BYTE   charSize;
 
 } READLINE;

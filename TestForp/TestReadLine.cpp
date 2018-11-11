@@ -364,21 +364,13 @@ namespace TestForp
 			initReadline(16);
 			AssertReadline(L"Berni");
 		}
-		TEST_METHOD(UnixOneLineWithLfUTF8_bufferTooSmall)
+		TEST_METHOD(UnixOneLineWithLfUTF8_bufferWithBOMTooSmallButTextFits)
 		{
 			hTmp->WriteUTF8BOM();
 			hTmp->WriteContentA("Berni\n");
 			initReadline(6);
 
-			LPWSTR line;
-			DWORD  cchLen;
-
-			initReadline(8);
-			DWORD rc = rl_readline(rl, &line, &cchLen);
-			Assert::IsTrue(rc == ERROR_INSUFFICIENT_BUFFER);
-			LastRc = rc;
-			Assert::IsNull(line);
-			Assert::IsTrue(0 == cchLen);
+			AssertReadline(L"Berni");
 		}
 		TEST_METHOD(LastLineHasOnlyOneCharA)
 		{
