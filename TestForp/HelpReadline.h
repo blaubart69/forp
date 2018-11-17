@@ -41,8 +41,8 @@ public:
 		WCHAR tempFilename[MAX_PATH];
 
 		GetTempFileNameW(
-			L"c:\\temp\\rl"
-			, L"RL_"
+			L"c:\\temp\\LineReader"
+			, L"LineReader_"
 			, unique
 			, tempFilename
 		);
@@ -112,16 +112,16 @@ public:
 	void WriteUTF8BOM()
 	{
 		// UTF8 ... 0xEF,0xBB,0xBF
-		char BOM[3] = { 0xEF,0xBB,0xBF };
+		unsigned char BOM[3] = { 0xEF,0xBB,0xBF };
 		WriteBuff(BOM, 3);
 	}
 	void WriteUTF16LEBOM()
 	{
-		char BOM[2] = { 0xFF, 0xFE };
+		unsigned char BOM[2] = { 0xFF, 0xFE };
 		WriteBuff(BOM, 2);
 		utf16bomwritten = true;
 	}
-	void WriteBuff(char* buf, int cbLen)
+	void WriteBuff(unsigned char* buf, int cbLen)
 	{
 		DWORD written;
 		WriteFile(

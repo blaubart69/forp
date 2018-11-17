@@ -20,4 +20,7 @@
 #include "..\forp\forp.h"
 #include "..\forp\readline.h"
 
+#include "..\forp\StreamTokenizer.h"
+#include "..\forp\LineReader.h"
+
 #include "HelpReadline.h"

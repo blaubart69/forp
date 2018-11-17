@@ -5,9 +5,19 @@ void * __cdecl operator new (size_t size)
 	return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size);
 }
 
+void * __cdecl operator new[](unsigned __int64 size)
+{
+	return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size);
+}
+
 void __cdecl operator delete(void *ptrToRelease, size_t size)
 {
 	HeapFree(GetProcessHeap(), 0, ptrToRelease);
+}
+
+void __cdecl operator delete[](void* memToFree)
+{
+	HeapFree(GetProcessHeap(), 0, memToFree);
 }
 
 //

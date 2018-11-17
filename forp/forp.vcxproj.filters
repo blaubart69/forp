@@ -30,6 +30,12 @@
     <ClInclude Include="readline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="streamtokenizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LineReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -51,6 +57,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="readline.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="streamtokenizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LineReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
