@@ -53,5 +53,8 @@
     <ClCompile Include="readline.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="werkbank.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

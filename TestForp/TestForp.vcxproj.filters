@@ -38,6 +38,9 @@
     <ClCompile Include="TestReadLine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestUtf8Convert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Object Include="..\forp\x64\Debug\pch.obj">

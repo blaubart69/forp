@@ -171,6 +171,7 @@
     </ClCompile>
     <ClCompile Include="TestReadLine.cpp" />
     <ClCompile Include="TestSubst.cpp" />
+    <ClCompile Include="TestUtf8Convert.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\forp\forp.vcxproj">
