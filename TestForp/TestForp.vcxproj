@@ -171,7 +171,7 @@
     </ClCompile>
     <ClCompile Include="TestReadLine.cpp" />
     <ClCompile Include="TestSubst.cpp" />
-    <ClCompile Include="TestLineReader.cpp" />
+    <ClCompile Include="TestUtf8Convert.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\forp\forp.vcxproj">
@@ -179,11 +179,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Object Include="..\forp\x64\Debug\LineReader.obj" />
     <Object Include="..\forp\x64\Debug\Log.obj" />
     <Object Include="..\forp\x64\Debug\pch.obj" />
     <Object Include="..\forp\x64\Debug\readline.obj" />
-    <Object Include="..\forp\x64\Debug\streamtokenizer.obj" />
     <Object Include="..\forp\x64\Debug\SubstPercentSymbols.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

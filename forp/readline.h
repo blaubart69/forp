@@ -15,14 +15,14 @@ typedef struct _readline
 	BOOL convertToCodepage;
 
 	DWORD bufSize;
-	DWORD bufLen;
+	DWORD cchLenBuf;
 
 	char* readBuffer;
-	char* readPos;
+	DWORD readIdx;
 	
 	BOOL   firstRead;
 	WCHAR* lineBuffer;
-	BYTE   charSize;
+	//BYTE   charSize;
 
 } READLINE;
 

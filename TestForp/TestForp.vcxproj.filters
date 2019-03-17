@@ -38,7 +38,7 @@
     <ClCompile Include="TestReadLine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestLineReader.cpp">
+    <ClCompile Include="TestUtf8Convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,12 +53,6 @@
       <Filter>obj</Filter>
     </Object>
     <Object Include="..\forp\x64\Debug\readline.obj">
-      <Filter>obj</Filter>
-    </Object>
-    <Object Include="..\forp\x64\Debug\LineReader.obj">
-      <Filter>obj</Filter>
-    </Object>
-    <Object Include="..\forp\x64\Debug\streamtokenizer.obj">
       <Filter>obj</Filter>
     </Object>
   </ItemGroup>
