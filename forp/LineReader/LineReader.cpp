@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "../pch.h"
 
 LineReader::LineReader(HANDLE fp, int bufsize)
 {

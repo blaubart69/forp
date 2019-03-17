@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "../pch.h"
 
 void printUsage(void);
 void concatArgsToOneString(int argc, wchar_t *argv[], int startIdx, LPWSTR* line, SIZE_T* len);

@@ -18,9 +18,9 @@
 #include <Windows.h>
 
 #include "..\forp\forp.h"
-#include "..\forp\readline.h"
+#include "..\forp\readline\readline.h"
 
-#include "..\forp\StreamTokenizer.h"
-#include "..\forp\LineReader.h"
+#include "..\forp\LineReader\StreamTokenizer.h"
+#include "..\forp\LineReader\LineReader.h"
 
 #include "HelpReadline.h"

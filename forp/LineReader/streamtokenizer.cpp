@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "../pch.h"
 
 #undef RtlMoveMemory
 extern "C" __declspec(dllimport) void __stdcall RtlMoveMemory(void *dst, const void *src, size_t len);

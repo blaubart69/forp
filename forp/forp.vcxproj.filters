@@ -1,60 +1,59 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="forp.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="werkbank.cpp" />
+    <ClCompile Include="LineReader\LineReader.cpp">
+      <Filter>LineReader</Filter>
+    </ClCompile>
+    <ClCompile Include="LineReader\streamtokenizer.cpp">
+      <Filter>LineReader</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\getopts.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\LibBee.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\Log.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\SubstPercentSymbols.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="readline\readline.c">
+      <Filter>readline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="forp.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="LineReader\LineReader.h">
+      <Filter>LineReader</Filter>
     </ClInclude>
-    <ClInclude Include="libBeeCpp.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="LineReader\streamtokenizer.h">
+      <Filter>LineReader</Filter>
     </ClInclude>
-    <ClInclude Include="Log.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Misc\libBeeCpp.h">
+      <Filter>Misc</Filter>
     </ClInclude>
-    <ClInclude Include="forp.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Misc\Log.h">
+      <Filter>Misc</Filter>
     </ClInclude>
-    <ClInclude Include="readline.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="readline\readline.h">
+      <Filter>readline</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="forp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LibBee.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Log.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SubstPercentSymbols.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="getopts.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="readline.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="werkbank.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <Filter Include="LineReader">
+      <UniqueIdentifier>{fe8482a0-1263-4c5b-9b1f-64b4fd9e47ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Misc">
+      <UniqueIdentifier>{7b3a418f-2789-4ba6-9f87-dbdfd04a50b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="readline">
+      <UniqueIdentifier>{d8cf5ce7-717a-48f8-ba63-78b82a83f1be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
