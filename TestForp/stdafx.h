@@ -24,3 +24,5 @@
 #include "..\forp\LineReader\LineReader.h"
 
 #include "HelpReadline.h"
+
+#include "..\forp\Readline2\readline2.h"

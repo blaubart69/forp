@@ -170,6 +170,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TestReadLine.cpp" />
+    <ClCompile Include="TestReadline2.cpp" />
     <ClCompile Include="TestSubst.cpp" />
     <ClCompile Include="TestUtf8Convert.cpp" />
   </ItemGroup>
@@ -182,6 +183,8 @@
     <Object Include="..\forp\x64\Debug\Log.obj" />
     <Object Include="..\forp\x64\Debug\pch.obj" />
     <Object Include="..\forp\x64\Debug\readline.obj" />
+    <Object Include="..\forp\x64\Debug\readline2.obj" />
+    <Object Include="..\forp\x64\Debug\readline2_helper.obj" />
     <Object Include="..\forp\x64\Debug\SubstPercentSymbols.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -25,6 +25,12 @@
     <ClCompile Include="readline\readline.c">
       <Filter>readline</Filter>
     </ClCompile>
+    <ClCompile Include="Readline2\readline2.cpp">
+      <Filter>Readline2</Filter>
+    </ClCompile>
+    <ClCompile Include="Readline2\readline2_helper.cpp">
+      <Filter>Readline2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="forp.h" />
@@ -44,6 +50,9 @@
     <ClInclude Include="readline\readline.h">
       <Filter>readline</Filter>
     </ClInclude>
+    <ClInclude Include="Readline2\readline2.h">
+      <Filter>Readline2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="LineReader">
@@ -54,6 +63,9 @@
     </Filter>
     <Filter Include="readline">
       <UniqueIdentifier>{d8cf5ce7-717a-48f8-ba63-78b82a83f1be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Readline2">
+      <UniqueIdentifier>{74084b21-e38b-41cb-8b6c-90604bda8587}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

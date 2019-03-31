@@ -41,6 +41,9 @@
     <ClCompile Include="TestUtf8Convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestReadline2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Object Include="..\forp\x64\Debug\pch.obj">
@@ -53,6 +56,12 @@
       <Filter>obj</Filter>
     </Object>
     <Object Include="..\forp\x64\Debug\readline.obj">
+      <Filter>obj</Filter>
+    </Object>
+    <Object Include="..\forp\x64\Debug\readline2.obj">
+      <Filter>obj</Filter>
+    </Object>
+    <Object Include="..\forp\x64\Debug\readline2_helper.obj">
       <Filter>obj</Filter>
     </Object>
   </ItemGroup>
