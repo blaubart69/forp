@@ -15,7 +15,7 @@ extern "C" __declspec(dllimport) void __stdcall RtlMoveMemory(void *dst, const v
 // ----------------------------------------------------------------------------
 //
 readline2::readline2(const HANDLE fp, const int bufsize)
-	: fp(fp), bufsize(bufsize)
+	: _fp(fp), _bufsize(bufsize)
 {
 	_read_buffer = new char[bufsize];
 	_conv_buffer = new WCHAR[bufsize];
@@ -28,13 +28,13 @@ readline2::~readline2()
 	delete[] _read_buffer;
 	delete[] _conv_buffer;
 }
-DWORD readline2::fill_read_buffer(int startIdx)
+DWORD readline2::fill_read_buffer(_In_ int startIdx)
 {
-	DWORD bytesToRead = bufsize - startIdx;
+	DWORD bytesToRead = _bufsize - startIdx;
 	DWORD bytesRead;
 
 	BOOL ok = ReadFile(
-		fp
+		_fp
 		, _read_buffer + startIdx
 		, bytesToRead
 		, &bytesRead
@@ -53,10 +53,8 @@ DWORD readline2::fill_read_buffer(int startIdx)
 
 	return rc;
 }
-DWORD readline2::first_read()
+DWORD readline2::first_read_and_convert()
 {
-	_firstRead = false;
-
 	DWORD rc;
 	rc = fill_read_buffer(0);
 	if (rc != 0)
@@ -99,10 +97,10 @@ DWORD readline2::conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConvert
 			_codepage							// CodePage 
 			, MB_ERR_INVALID_CHARS				// dwFlags
 			, _read_buffer + startIdx			// lpMultiByteStr
-			, *bytesConverted					// cbMultiByte 
+			, byteToConvert						// cbMultiByte 
 			, _conv_buffer						// lpWideCharStr
-			, bufsize							// cchWideChar 
-		)) == 0)
+			, _bufsize							// cchWideChar 
+		)) == 0)     
 		{
 			rc = GetLastError();
 			if (rc == ERROR_NO_UNICODE_TRANSLATION)
@@ -125,7 +123,7 @@ DWORD readline2::conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConvert
 
 	return rc;
 }
-DWORD readline2::convert_and_read_again(int startIdx)
+DWORD readline2::convert_and_read_again(_In_ const int startIdx)
 {
 	DWORD rc;
 
@@ -181,10 +179,12 @@ void readline2::report_next_line(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 	}
 	else
 	{
+		// TODO: might be 1 behind _conv_buffer
+		_conv_buffer[idx] = L'\0';			
 		cchLen = idx - _conv_start_idx;
 	}
 
-	_conv_start_idx += idx + 1;
+	_conv_start_idx = idx + 1;
 }
 DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 {
@@ -192,7 +192,8 @@ DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 
 	if (_firstRead)
 	{
-		rc = first_read();
+		_firstRead = false;
+		rc = first_read_and_convert();
 		if (rc != 0)
 		{
 			return rc;
