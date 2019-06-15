@@ -69,7 +69,7 @@ DWORD readline2::first_read_and_convert()
 
 	if (!isUTF16)
 	{
-		rc = convert_and_read_again(lenBOM);
+		rc = convert_and_read(lenBOM);
 	}
 
 	return rc;
@@ -123,7 +123,7 @@ DWORD readline2::conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConvert
 
 	return rc;
 }
-DWORD readline2::convert_and_read_again(_In_ const int startIdx)
+DWORD readline2::convert_and_read(_In_ const int startIdx)
 {
 	DWORD rc;
 
@@ -147,44 +147,46 @@ DWORD readline2::convert_and_read_again(_In_ const int startIdx)
 
 	return rc;
 }
-BOOL readline2::eof()
-{
-	return
-			_conv_start_idx > _conv_buf_len
-		&&	_read_buf_len == 0;
-}
-void readline2::report_next_line(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
+bool readline2::report_next_line(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 {
 	line = _conv_buffer + _conv_start_idx;
 	cchLen = 0;
 
+	bool newLineFound = false;
 	int idx = _conv_start_idx;
-	while ( idx < _conv_buf_len && _conv_buffer[idx] != L'\n' )
+
+	while ( idx < _conv_buf_len )
 	{
+		if (_conv_buffer[idx] == L'\n')
+		{
+			newLineFound = true;
+			break;
+		}
 		++idx;
 	}
 
-	if (_conv_buffer[idx] == L'\n')
+	if (newLineFound)
 	{
 		if (idx > 0 && _conv_buffer[idx - 1] == L'\r')
 		{
-			_conv_buffer[idx - 1] = L'\0';
-			cchLen = idx - _conv_start_idx - 1;
+			--idx;
 		}
-		else
-		{
-			_conv_buffer[idx] = L'\0';
-			cchLen = idx - _conv_start_idx;
-		}
+		_conv_buffer[idx] = L'\0';
+		cchLen = idx - _conv_start_idx;
+
+		_conv_start_idx = idx + 1;
 	}
 	else
 	{
-		// TODO: might be 1 behind _conv_buffer
-		_conv_buffer[idx] = L'\0';			
-		cchLen = idx - _conv_start_idx;
+		if (_read_buf_len == 0)
+		{
+			_conv_buffer[idx] = L'\0';
+			cchLen = idx - _conv_start_idx;
+			newLineFound = true;
+		}
 	}
 
-	_conv_start_idx = idx + 1;
+	return newLineFound;
 }
 DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 {
@@ -200,21 +202,40 @@ DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 		}
 	}
 
-	if (_conv_start_idx < _conv_buf_len)
+	bool eof = false;
+	if (_conv_start_idx >= _conv_buf_len)
 	{
-		report_next_line(line, cchLen);
-	}
-	else if (_read_buf_len == 0)
-	{
-		line = nullptr;
-		cchLen = 0;
-	}
-	else
-	{
-		rc = convert_and_read_again(0);
-		if (rc == 0)
+		if (_read_buf_len == 0)
 		{
-			report_next_line(line, cchLen);
+			line = nullptr;
+			cchLen = 0;
+			eof = true;
+		}
+		else
+		{
+			rc = convert_and_read(0);
+		}
+	}
+
+	if (!eof && rc == 0)
+	{
+		while (true)
+		{
+			if (report_next_line(line, cchLen))
+			{
+				break;
+			}
+			else
+			{
+				size_t bytesToMove = _conv_buf_len - _conv_start_idx;
+
+				RtlMoveMemory(
+					_conv_buffer,
+					_conv_buffer  + _conv_start_idx,
+					bytesToMove);
+
+				rc = convert_and_read(bytesToMove + 1);
+			}
 		}
 	}
 

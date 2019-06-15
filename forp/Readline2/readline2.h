@@ -29,7 +29,6 @@ private:
 	DWORD fill_read_buffer(int startIdx);
 	DWORD conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConverted);
 	DWORD first_read_and_convert();
-	DWORD convert_and_read_again(const int startIdx);
-	BOOL  eof();
-	void report_next_line(_Out_ LPWSTR& line, _Out_ DWORD & cchLen);
+	DWORD convert_and_read(const int startIdx);
+	bool report_next_line(_Out_ LPWSTR& line, _Out_ DWORD & cchLen);
 };
