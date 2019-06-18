@@ -36,13 +36,15 @@ private:
 
 public:
 
-	HelpTempFile(UINT unique)
+	HelpTempFile(UINT unique, LPCWSTR baseDir, LPCWSTR prefix)
 	{
 		WCHAR tempFilename[MAX_PATH];
 
 		GetTempFileNameW(
-			L"c:\\temp\\LineReader"
-			, L"LineReader_"
+			//L"c:\\temp\\LineReader"
+			//, L"LineReader_"
+			  baseDir
+			, prefix
 			, unique
 			, tempFilename
 		);

@@ -53,7 +53,10 @@ namespace TestForp
 		TEST_METHOD_INITIALIZE(initMeth)
 		{
 			InterlockedIncrement64(&counter);
-			hTmp = new HelpTempFile((UINT)counter);
+			hTmp = new HelpTempFile(
+				(UINT)counter
+			, L"c:\\temp\\readline"
+			, L"rl_");
 		}
 
 		TEST_METHOD_CLEANUP(cleanMeth)
