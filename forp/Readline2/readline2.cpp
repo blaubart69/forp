@@ -21,6 +21,7 @@ readline2::readline2(const HANDLE fp, const int bufsize)
 	_conv_buffer = new WCHAR[bufsize];
 
 	_firstRead = true;
+	_eof = false;
 	
 }
 readline2::~readline2()
@@ -44,6 +45,12 @@ DWORD readline2::fill_read_buffer(_In_ int startIdx)
 	if (ok)
 	{
 		_read_buf_len = startIdx + bytesRead;
+
+		if (bytesRead == 0)
+		{
+			_eof = true;
+		}
+
 		rc = 0;
 	}
 	else
@@ -167,14 +174,13 @@ bool readline2::report_next_line(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 
 	if (newLineFound)
 	{
+		int idxToSetZero = idx;
 		if (idx > 0 && _conv_buffer[idx - 1] == L'\r')
 		{
-			--idx;
+			--idxToSetZero;
 		}
-		_conv_buffer[idx] = L'\0';
-		cchLen = idx - _conv_start_idx;
-
-		_conv_start_idx = idx + 1;
+		_conv_buffer[idxToSetZero] = L'\0';
+		cchLen = idxToSetZero - _conv_start_idx;
 	}
 	else
 	{
@@ -186,11 +192,20 @@ bool readline2::report_next_line(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 		}
 	}
 
+	if (newLineFound)
+	{
+		_conv_start_idx = idx + 1;
+	}
+
 	return newLineFound;
 }
+
 DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 {
 	DWORD rc = 0;
+
+	line = nullptr;
+	cchLen = 0;
 
 	if (_firstRead)
 	{
@@ -201,15 +216,12 @@ DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 			return rc;
 		}
 	}
-
-	bool eof = false;
-	if (_conv_start_idx >= _conv_buf_len)
+	
+	if (_conv_start_idx >= _conv_buf_len)	// no more data in CONV buffer
 	{
-		if (_read_buf_len == 0)
+		if (_read_buf_len == 0) // no more date in READ buffer
 		{
-			line = nullptr;
-			cchLen = 0;
-			eof = true;
+			return 0;
 		}
 		else
 		{
@@ -217,25 +229,28 @@ DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 		}
 	}
 
-	if (!eof && rc == 0)
+	while (true)
 	{
-		while (true)
+		if (report_next_line(line, cchLen))
 		{
-			if (report_next_line(line, cchLen))
+			break;
+		}
+		else
+		{
+			if (_conv_start_idx == 0)
 			{
+				rc = ERROR_INSUFFICIENT_BUFFER;
 				break;
 			}
-			else
-			{
-				size_t bytesToMove = _conv_buf_len - _conv_start_idx;
 
-				RtlMoveMemory(
-					_conv_buffer,
-					_conv_buffer  + _conv_start_idx,
-					bytesToMove);
+			size_t bytesToMove = ( _conv_buf_len - _conv_start_idx ) * 2;
 
-				rc = convert_and_read(bytesToMove + 1);
-			}
+			RtlMoveMemory(
+				_conv_buffer,
+				_conv_buffer  + _conv_start_idx,
+				bytesToMove);
+
+			rc = convert_and_read(bytesToMove + 1);
 		}
 	}
 

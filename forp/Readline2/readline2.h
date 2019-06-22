@@ -21,10 +21,13 @@ private:
 
 	char*		_read_buffer;
 	LPWSTR		_conv_buffer;
+
 	int			_conv_start_idx;
 	
 	size_t		_read_buf_len;
 	size_t		_conv_buf_len;
+
+	bool		_eof;
 
 	DWORD fill_read_buffer(int startIdx);
 	DWORD conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConverted);
