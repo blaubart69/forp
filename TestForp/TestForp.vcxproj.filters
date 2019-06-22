@@ -24,7 +24,7 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HelpReadline.h">
+    <ClInclude Include="HelpTempFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

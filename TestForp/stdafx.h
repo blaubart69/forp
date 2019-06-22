@@ -23,6 +23,6 @@
 #include "..\forp\LineReader\StreamTokenizer.h"
 #include "..\forp\LineReader\LineReader.h"
 
-#include "HelpReadline.h"
+#include "HelpTempFile.h"
 
 #include "..\forp\Readline2\readline2.h"
