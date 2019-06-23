@@ -28,9 +28,6 @@
     <ClCompile Include="Readline2\readline2.cpp">
       <Filter>Readline2</Filter>
     </ClCompile>
-    <ClCompile Include="Readline2\readline2_helper.cpp">
-      <Filter>Readline2</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="forp.h" />

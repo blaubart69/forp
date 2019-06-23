@@ -20,18 +20,17 @@ private:
 	BOOL		_firstRead;
 
 	char*		_read_buffer;
-	LPWSTR		_conv_buffer;
-
-	int			_conv_start_idx;
-	
-	size_t		_read_buf_len;
-	size_t		_conv_buf_len;
+	DWORD		_bytes_in_read_buffer;
+	//DWORD		_read_buf_len;
 
 	bool		_eof;
 
-	DWORD fill_read_buffer(int startIdx);
-	DWORD conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConverted);
+	LPWSTR		_conv_buffer;
+	DWORD		_conv_start_idx;
+	DWORD		_conv_buf_len;
+
+	DWORD fill_read_buffer();
+	DWORD convert(_In_ int byteBufStartIdx, _In_ int convStartIdx);
 	DWORD first_read_and_convert();
-	DWORD convert_and_read(const int startIdx);
-	bool report_next_line(_Out_ LPWSTR& line, _Out_ DWORD & cchLen);
+	bool find_next_line(_Out_ LPWSTR& line, _Out_ DWORD & cchLen);
 };

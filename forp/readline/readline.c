@@ -286,6 +286,7 @@ static DWORD reportLine(_Inout_ READLINE* rl, _Out_ LPWSTR* line, _Out_ DWORD* c
 
 	return rc;
 }
+
 static void tryDetectBOM(_In_ const unsigned char* buf, _In_ DWORD bufLen, _Inout_ UINT* codepage, _Out_ BYTE* lenBOM, _Out_ BOOL* UTF16found)
 {
 	*lenBOM = 0;
@@ -312,6 +313,7 @@ static void tryDetectBOM(_In_ const unsigned char* buf, _In_ DWORD bufLen, _Inou
 		}
 	}
 }
+
 static void handleFirstRead(_Inout_ READLINE* rl, _Out_ BYTE* lenBOM)
 {
 	BOOL UTF16found = FALSE;

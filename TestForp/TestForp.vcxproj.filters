@@ -61,8 +61,5 @@
     <Object Include="..\forp\x64\Debug\readline2.obj">
       <Filter>obj</Filter>
     </Object>
-    <Object Include="..\forp\x64\Debug\readline2_helper.obj">
-      <Filter>obj</Filter>
-    </Object>
   </ItemGroup>
 </Project>

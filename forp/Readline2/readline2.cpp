@@ -3,11 +3,37 @@
 // ----------------------------------------------------------------------------
 //
 void tryDetectBOM(
-	_In_ const unsigned char* buf,
-	_In_ DWORD bufLen,
+	_In_	const unsigned char* buf,
+	_In_	DWORD bufLen,
 	_Inout_ UINT* codepage,
-	_Out_ BYTE* lenBOM,
-	_Out_ BOOL* UTF16found);
+	_Out_	BYTE* lenBOM,
+	_Out_	BOOL* UTF16LEfound)
+{
+	*lenBOM = 0;
+	*UTF16LEfound = false;
+
+	if (bufLen >= 2)
+	{
+		// UTF16 LE ... 0xFF 0xFE
+		if (buf[0] == 0xFF
+			&& buf[1] == 0xFE)
+		{
+			*lenBOM = 2;
+			*UTF16LEfound = TRUE;
+		}
+		else if (bufLen >= 3)
+		{
+			// UTF8 ... 0xEF,0xBB,0xBF
+			if (buf[0] == 0xEF
+				&& buf[1] == 0xBB
+				&& buf[2] == 0xBF)
+			{
+				*codepage = CP_UTF8;
+				*lenBOM = 3;
+			}
+		}
+	}
+}
 
 #undef RtlMoveMemory
 extern "C" __declspec(dllimport) void __stdcall RtlMoveMemory(void *dst, const void *src, size_t len);
@@ -22,36 +48,34 @@ readline2::readline2(const HANDLE fp, const int bufsize)
 
 	_firstRead = true;
 	_eof = false;
-	
+	_bytes_in_read_buffer = 0;
+	_conv_buf_len = 0;
+	_conv_start_idx = 0;
 }
 readline2::~readline2()
 {
 	delete[] _read_buffer;
 	delete[] _conv_buffer;
 }
-DWORD readline2::fill_read_buffer(_In_ int startIdx)
+DWORD readline2::fill_read_buffer()
 {
-	DWORD bytesToRead = _bufsize - startIdx;
+	DWORD rc;
+	DWORD bytesToRead = _bufsize - _bytes_in_read_buffer;
 	DWORD bytesRead;
 
-	BOOL ok = ReadFile(
+	if ( ReadFile(
 		_fp
-		, _read_buffer + startIdx
+		, _read_buffer + _bytes_in_read_buffer
 		, bytesToRead
 		, &bytesRead
-		, NULL);
-
-	int rc;
-	if (ok)
+		, NULL))
 	{
-		_read_buf_len = startIdx + bytesRead;
-
+		rc = 0;
+		_bytes_in_read_buffer += bytesRead;
 		if (bytesRead == 0)
 		{
 			_eof = true;
 		}
-
-		rc = 0;
 	}
 	else
 	{
@@ -63,8 +87,7 @@ DWORD readline2::fill_read_buffer(_In_ int startIdx)
 DWORD readline2::first_read_and_convert()
 {
 	DWORD rc;
-	rc = fill_read_buffer(0);
-	if (rc != 0)
+	if ( (rc = fill_read_buffer()) != 0 ) // startIdx == 0
 	{
 		return rc;
 	}
@@ -72,29 +95,36 @@ DWORD readline2::first_read_and_convert()
 	_codepage = CP_ACP;
 	BYTE lenBOM;
 	BOOL isUTF16;
-	tryDetectBOM((unsigned char*)_read_buffer, _read_buf_len, &_codepage, &lenBOM, &isUTF16);
+	tryDetectBOM((unsigned char*)_read_buffer, _bytes_in_read_buffer, &_codepage, &lenBOM, &isUTF16);
 
-	if (!isUTF16)
+	if (lenBOM == _bytes_in_read_buffer)
 	{
-		rc = convert_and_read(lenBOM);
+		_eof = true;
+		// TODO
+		// 2019-06-23 Beanie
+		//	not really. we would have to call ReadFile() another time to see if we get 0 BytesRead
+	}
+	else
+	{
+		if (!isUTF16)
+		{
+			rc = convert(lenBOM, _conv_start_idx);
+		}
 	}
 
 	return rc;
 }
-DWORD readline2::conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConverted)
+DWORD readline2::convert(_In_ int readBufStartIdx, _In_ int convBufStartIdx)
 {
 	DWORD rc;
 	int widecharsWritten = 0;
-	int retry = 0;
-	_conv_start_idx = 0;
-	_conv_buf_len = 0;
-	*bytesConverted = 0;
+	DWORD bytesNotConverted = 0;
 
-	while (retry < 4)
+	while (bytesNotConverted < 4)
 	{
-		int byteToConvert = _read_buf_len - startIdx - retry;
+		int bytesToConvert = _bytes_in_read_buffer - readBufStartIdx - bytesNotConverted;
 
-		if (byteToConvert == 0)
+		if (bytesToConvert == 0)
 		{
 			rc = 0;
 			break;
@@ -103,16 +133,16 @@ DWORD readline2::conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConvert
 		if ((widecharsWritten = MultiByteToWideChar(
 			_codepage							// CodePage 
 			, MB_ERR_INVALID_CHARS				// dwFlags
-			, _read_buffer + startIdx			// lpMultiByteStr
-			, byteToConvert						// cbMultiByte 
-			, _conv_buffer						// lpWideCharStr
+			, _read_buffer + readBufStartIdx	// lpMultiByteStr
+			, bytesToConvert					// cbMultiByte 
+			, _conv_buffer + convBufStartIdx	// lpWideCharStr
 			, _bufsize							// cchWideChar 
 		)) == 0)     
 		{
 			rc = GetLastError();
 			if (rc == ERROR_NO_UNICODE_TRANSLATION)
 			{
-				retry += 1;
+				bytesNotConverted += 1;
 			}
 			else
 			{
@@ -122,45 +152,33 @@ DWORD readline2::conv_buffer_to_wchar(_In_ int startIdx, _Out_ int* bytesConvert
 		else
 		{
 			rc = 0;
-			_conv_buf_len = widecharsWritten;
-			*bytesConverted = byteToConvert;
+
+			_conv_buf_len			+= widecharsWritten;
+			_bytes_in_read_buffer	= _bytes_in_read_buffer - (readBufStartIdx + bytesToConvert);
+
+			if (_bytes_in_read_buffer > 0)
+			{
+				RtlMoveMemory(
+					_read_buffer													//	dest
+					, &(_read_buffer[_bytes_in_read_buffer - bytesNotConverted])	// source
+					, bytesNotConverted);
+			}
+
 			break;
 		}
 	}
 
 	return rc;
 }
-DWORD readline2::convert_and_read(_In_ const int startIdx)
+bool readline2::find_next_line(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 {
-	DWORD rc;
+	DWORD rc = 0;
 
-	int bytesConverted;
-	rc = conv_buffer_to_wchar(startIdx, &bytesConverted);
-	if (rc != 0)
-	{
-		return rc;
-	}
-
-	size_t bytesRemainingInReadBuffer = _read_buf_len - (startIdx + bytesConverted);
-	if (bytesRemainingInReadBuffer > 0)
-	{
-		RtlMoveMemory(
-			_read_buffer													//	dest
-			, &(_read_buffer[_read_buf_len - bytesRemainingInReadBuffer])	// source
-			, bytesRemainingInReadBuffer);
-	}
-
-	rc = fill_read_buffer(bytesRemainingInReadBuffer);
-
-	return rc;
-}
-bool readline2::report_next_line(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
-{
 	line = _conv_buffer + _conv_start_idx;
 	cchLen = 0;
 
 	bool newLineFound = false;
-	int idx = _conv_start_idx;
+	DWORD idx = _conv_start_idx;
 
 	while ( idx < _conv_buf_len )
 	{
@@ -180,21 +198,18 @@ bool readline2::report_next_line(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 			--idxToSetZero;
 		}
 		_conv_buffer[idxToSetZero] = L'\0';
+
 		cchLen = idxToSetZero - _conv_start_idx;
+		_conv_start_idx = idx + 1;
 	}
 	else
 	{
-		if (_read_buf_len == 0)
+		// have we reached EOF?
+		rc = fill_read_buffer();
+		if (rc == 0)
 		{
-			_conv_buffer[idx] = L'\0';
-			cchLen = idx - _conv_start_idx;
-			newLineFound = true;
-		}
-	}
 
-	if (newLineFound)
-	{
-		_conv_start_idx = idx + 1;
+		}
 	}
 
 	return newLineFound;
@@ -215,23 +230,43 @@ DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 		{
 			return rc;
 		}
+		if (_eof)
+		{
+			return 0;
+		}
 	}
 	
 	if (_conv_start_idx >= _conv_buf_len)	// no more data in CONV buffer
 	{
-		if (_read_buf_len == 0) // no more date in READ buffer
+		if (_bytes_in_read_buffer == 0) 
 		{
 			return 0;
 		}
 		else
 		{
-			rc = convert_and_read(0);
+			if (!_eof)
+			{
+				rc = fill_read_buffer();
+			}
+
+			if (rc == 0)
+			{
+				rc = convert(
+					  0	//readBufStartIdx
+					, 0	// convBufStartIdx
+				);
+			}
 		}
 	}
 
 	while (true)
 	{
-		if (report_next_line(line, cchLen))
+		if (rc != 0)
+		{
+			break;
+		}
+
+		if (find_next_line(line, cchLen))
 		{
 			break;
 		}
@@ -242,15 +277,30 @@ DWORD readline2::next(_Out_ LPWSTR & line, _Out_ DWORD & cchLen)
 				rc = ERROR_INSUFFICIENT_BUFFER;
 				break;
 			}
-
-			size_t bytesToMove = ( _conv_buf_len - _conv_start_idx ) * 2;
-
+			//
+			// fill read buffer - see if we reached EOF
+			//
+			if (!_eof)
+			{
+				rc = fill_read_buffer();
+			}
+			//
+			// shift conv buffer down
+			//
+			DWORD convBytesToMove = ( _conv_buf_len - _conv_start_idx ) * 2;
 			RtlMoveMemory(
-				_conv_buffer,
-				_conv_buffer  + _conv_start_idx,
-				bytesToMove);
+				_conv_buffer,						// dest
+				_conv_buffer  + _conv_start_idx,	// src
+				convBytesToMove);
 
-			rc = convert_and_read(bytesToMove + 1);
+			_conv_start_idx = convBytesToMove;
+			//
+			// convert read buffer
+			//
+			if (rc == 0)
+			{
+				rc = convert(0, _conv_start_idx);
+			}
 		}
 	}
 

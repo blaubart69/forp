@@ -184,7 +184,6 @@
     <Object Include="..\forp\x64\Debug\pch.obj" />
     <Object Include="..\forp\x64\Debug\readline.obj" />
     <Object Include="..\forp\x64\Debug\readline2.obj" />
-    <Object Include="..\forp\x64\Debug\readline2_helper.obj" />
     <Object Include="..\forp\x64\Debug\SubstPercentSymbols.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
