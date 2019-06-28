@@ -31,6 +31,9 @@ private:
 
 	DWORD fill_read_buffer();
 	DWORD convert(_In_ int byteBufStartIdx, _In_ int convStartIdx);
+	DWORD clearCrLf(_In_ DWORD newLineIdx);
 	DWORD first_read_and_convert();
-	bool find_next_line(_Out_ LPWSTR& line, _Out_ DWORD & cchLen);
+	bool  find_newline(_Out_ DWORD* newLineIdx);
+	//DWORD read_and_convert();
+	void  move_conv_buffer_down();
 };
