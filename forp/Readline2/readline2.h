@@ -7,7 +7,7 @@
 class readline2
 {
 public:
-	readline2(const HANDLE fp, const int bufsize);
+	readline2(const HANDLE fp, const DWORD bufsize);
 	virtual ~readline2();
 
 	DWORD next(_Out_ LPWSTR& line, _Out_ DWORD & cchLen);

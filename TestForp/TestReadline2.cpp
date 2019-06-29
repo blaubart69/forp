@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 //#include "CppUnitTest.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -69,6 +69,118 @@ namespace TestForp
 			delete rl;
 		}
 		//
+		// wide
+		//
+		/*
+		TEST_METHOD(OneLineWithCrLfW)
+		{
+			hTmp->WriteW(L"berni\r\n");
+			initReadline(16);
+			AssertReadline(L"berni");
+		}
+		TEST_METHOD(OneLineWithoutCrLfW)
+		{
+			hTmp->WriteW(L"berni");
+			initReadline(32);
+			AssertReadline(L"berni");
+		}
+		TEST_METHOD(TwoLinesWithinBufferW)
+		{
+			hTmp->WriteW(L"berni\r\nspindler\r\n");
+
+			initReadline(64);
+			AssertReadline(L"berni");
+			AssertReadline(L"spindler");
+		}
+		TEST_METHOD(TwoLinesWithinBufferW_secondWithoutCrLf)
+		{
+			hTmp->WriteW(L"berni\r\nspindler");
+
+			initReadline(64);
+			AssertReadline(L"berni");
+			AssertReadline(L"spindler");
+		}
+				TEST_METHOD(OneLineWithoutCrLfW_bufferToSmall)
+		{
+			hTmp->WriteW(L"berni");
+
+			LPWSTR line;
+			DWORD  cchLen;
+
+			initReadline(8);
+			//DWORD rc = rl_readline(rl, &line, &cchLen);
+			DWORD rc = rl->next(line, cchLen);
+			Assert::IsTrue(rc == ERROR_INSUFFICIENT_BUFFER);
+			LastRc = rc;
+			Assert::IsNull(line);
+			Assert::IsTrue(0 == cchLen);
+		}
+		TEST_METHOD(SecondLineDoesNotFitInBuffer_W)
+		{
+			hTmp->WriteW(L"12345\r\nabcdefghijkl");
+
+			initReadline(13 * 2);
+			AssertReadline(L"12345");
+			AssertReadline(L"abcdefghijkl");
+		}
+		TEST_METHOD(OneEmtpyLineW)
+		{
+			hTmp->WriteW(L"\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+		}
+		TEST_METHOD(TwoEmtpyLineW)
+		{
+			hTmp->WriteW(L"\r\n\r\n");
+			initReadline(16);
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(SixemptyLinesW)
+		{
+			hTmp->WriteW(L"\r\n\r\n\r\n\r\n\r\n\r\n");
+			initReadline(128);
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(SixEmptyLinesWithTooSmallBufferW)
+		{
+			hTmp->WriteW(L"\r\n\r\n\r\n\r\n\r\n\r\n");
+			initReadline(8);
+
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(UnixOneEmptyLineW)
+		{
+			hTmp->WriteW(L"\n");
+			initReadline(6);
+			AssertReadline(L"");
+		}
+		TEST_METHOD(UnixTwoEmptyLineW)
+		{
+			hTmp->WriteW(L"\n\n");
+			initReadline(6);
+			AssertReadline(L"");
+			AssertReadline(L"");
+		}
+		TEST_METHOD(UnixOneLineWithLfW)
+		{
+			hTmp->WriteW(L"Berni\n");
+			initReadline(16);
+			AssertReadline(L"Berni");
+		}
+
+		*/
+		//
 		// one line with crlf
 		//
 		TEST_METHOD(OneLineWithCrLf)
@@ -76,12 +188,6 @@ namespace TestForp
 			hTmp->WriteA("Berni\r\n");
 			initReadline(8);
 			AssertReadline(L"Berni");
-		}
-		TEST_METHOD(OneLineWithCrLfW)
-		{
-			hTmp->WriteW(L"berni\r\n");
-			initReadline(16);
-			AssertReadline(L"berni");
 		}
 		TEST_METHOD(OneLineWithCrLf_UTF8BOM)
 		{
@@ -97,12 +203,6 @@ namespace TestForp
 		{
 			hTmp->WriteA("berni");
 			initReadline(8);
-			AssertReadline(L"berni");
-		}
-		TEST_METHOD(OneLineWithoutCrLfW)
-		{
-			hTmp->WriteW(L"berni");
-			initReadline(32);
 			AssertReadline(L"berni");
 		}
 		TEST_METHOD(OneLineWithoutCrLf_UTF8)
@@ -132,32 +232,9 @@ namespace TestForp
 			initReadline(8);
 			AssertReadline(NULL);
 		}
-		TEST_METHOD(OneLineWithoutCrLfW_bufferToSmall)
-		{
-			hTmp->WriteW(L"berni");
-
-			LPWSTR line;
-			DWORD  cchLen;
-
-			initReadline(8);
-			//DWORD rc = rl_readline(rl, &line, &cchLen);
-			DWORD rc = rl->next(line, cchLen);
-			Assert::IsTrue(rc == ERROR_INSUFFICIENT_BUFFER);
-			LastRc = rc;
-			Assert::IsNull(line);
-			Assert::IsTrue(0 == cchLen);
-		}
 		TEST_METHOD(TwoLinesWithinBufferA)
 		{
 			hTmp->WriteA("berni\r\nspindler\r\n");
-
-			initReadline(64);
-			AssertReadline(L"berni");
-			AssertReadline(L"spindler");
-		}
-		TEST_METHOD(TwoLinesWithinBufferW)
-		{
-			hTmp->WriteW(L"berni\r\nspindler\r\n");
 
 			initReadline(64);
 			AssertReadline(L"berni");
@@ -167,14 +244,6 @@ namespace TestForp
 		{
 			hTmp->WriteUTF8BOM();
 			hTmp->WriteA("berni\r\nspindler\r\n");
-
-			initReadline(64);
-			AssertReadline(L"berni");
-			AssertReadline(L"spindler");
-		}
-		TEST_METHOD(TwoLinesWithinBufferW_secondWithoutCrLf)
-		{
-			hTmp->WriteW(L"berni\r\nspindler");
 
 			initReadline(64);
 			AssertReadline(L"berni");
@@ -205,20 +274,12 @@ namespace TestForp
 			AssertReadline(L"12345");
 			AssertReadline(L"abcdefghijkl");
 		}
-		TEST_METHOD(SecondLineDoesNotFitInBuffer_W)
-		{
-			hTmp->WriteW(L"12345\r\nabcdefghijkl");
-
-			initReadline(13 * 2);
-			AssertReadline(L"12345");
-			AssertReadline(L"abcdefghijkl");
-		}
 		TEST_METHOD(ReadUmlautAsUTF8)
 		{
-			hTmp->WriteA("B�rnie");
+			hTmp->WriteA("Börnie");
 
 			initReadline(16);
-			AssertReadline(L"B�rnie");
+			AssertReadline(L"Börnie");
 		}
 		//
 		// emtpy line
@@ -226,12 +287,6 @@ namespace TestForp
 		TEST_METHOD(OneEmtpyLineA)
 		{
 			hTmp->WriteA("\r\n");
-			initReadline(16);
-			AssertReadline(L"");
-		}
-		TEST_METHOD(OneEmtpyLineW)
-		{
-			hTmp->WriteW(L"\r\n");
 			initReadline(16);
 			AssertReadline(L"");
 		}
@@ -252,13 +307,6 @@ namespace TestForp
 			AssertReadline(L"");
 			AssertReadline(L"");
 		}
-		TEST_METHOD(TwoEmtpyLineW)
-		{
-			hTmp->WriteW(L"\r\n\r\n");
-			initReadline(16);
-			AssertReadline(L"");
-			AssertReadline(L"");
-		}
 		TEST_METHOD(TwoEmtpyLineUTF8)
 		{
 			hTmp->WriteUTF8BOM();
@@ -274,17 +322,6 @@ namespace TestForp
 		{
 			hTmp->WriteA("\r\n\r\n\r\n\r\n\r\n\r\n");
 			initReadline(16);
-			AssertReadline(L"");
-			AssertReadline(L"");
-			AssertReadline(L"");
-			AssertReadline(L"");
-			AssertReadline(L"");
-			AssertReadline(L"");
-		}
-		TEST_METHOD(SixemptyLinesW)
-		{
-			hTmp->WriteW(L"\r\n\r\n\r\n\r\n\r\n\r\n");
-			initReadline(128);
 			AssertReadline(L"");
 			AssertReadline(L"");
 			AssertReadline(L"");
@@ -315,18 +352,6 @@ namespace TestForp
 			AssertReadline(L"");
 			AssertReadline(L"");
 		}
-		TEST_METHOD(SixEmptyLinesWithTooSmallBufferW)
-		{
-			hTmp->WriteW(L"\r\n\r\n\r\n\r\n\r\n\r\n");
-			initReadline(8);
-
-			AssertReadline(L"");
-			AssertReadline(L"");
-			AssertReadline(L"");
-			AssertReadline(L"");
-			AssertReadline(L"");
-			AssertReadline(L"");
-		}
 		//
 		// UNIX ...
 		//
@@ -343,29 +368,10 @@ namespace TestForp
 			AssertReadline(L"");
 			AssertReadline(L"");
 		}
-		TEST_METHOD(UnixOneEmptyLineW)
-		{
-			hTmp->WriteW(L"\n");
-			initReadline(6);
-			AssertReadline(L"");
-		}
-		TEST_METHOD(UnixTwoEmptyLineW)
-		{
-			hTmp->WriteW(L"\n\n");
-			initReadline(6);
-			AssertReadline(L"");
-			AssertReadline(L"");
-		}
 		TEST_METHOD(UnixOneLineWithLfA)
 		{
 			hTmp->WriteA("Berni\n");
 			initReadline(6);
-			AssertReadline(L"Berni");
-		}
-		TEST_METHOD(UnixOneLineWithLfW)
-		{
-			hTmp->WriteW(L"Berni\n");
-			initReadline(16);
 			AssertReadline(L"Berni");
 		}
 		TEST_METHOD(UnixOneLineWithLfUTF8_bufferWithBOMTooSmallButTextFits)
@@ -398,12 +404,34 @@ namespace TestForp
 			AssertReadline(L"");
 			AssertReadline(L"x");
 		}
-		// UTF8 codepoint no full in buffer
-		TEST_METHOD(UTF8_SpiltCodepoint)
+		// UTF8 codepoints
+		TEST_METHOD(UTF8_chars)
 		{
 			hTmp->WriteUTF8BOM();
-			hTmp->WriteA("\n\n\n\n\n\nx");
-			initReadline(21);
+			hTmp->WriteUTF8(L"Börnie\r\n");
+			initReadline(32);
+			AssertReadline(L"Börnie");
+		}
+		TEST_METHOD(UTF8_more_chars)
+		{
+			hTmp->WriteUTF8BOM();
+			hTmp->WriteUTF8(L"ẞßöäü€@\r\n");
+			initReadline(32);
+			AssertReadline(L"ẞßöäü€@");
+		}
+		TEST_METHOD(UTF8_more_chars_small_buffer)
+		{
+			hTmp->WriteUTF8BOM();
+			hTmp->WriteUTF8(L"ẞßöäü€@\r\n");
+			initReadline(7);
+			AssertReadline(L"ẞßöäü€@");
+		}
+		TEST_METHOD(UTF8_more_chars_small_buffer_noCrLf)
+		{
+			hTmp->WriteUTF8BOM();
+			hTmp->WriteUTF8(L"ẞßöäü€@");
+			initReadline(7);
+			AssertReadline(L"ẞßöäü€@");
 		}
 	};
 }

@@ -8,6 +8,9 @@ class HelpTempFile
 private:
 	WCHAR _tempFilename[MAX_PATH];
 
+	const DWORD _convertBufferSize = 4096;
+	char* _convertbuffer;
+
 	HANDLE _hWriteHandle;
 	HANDLE _hReadHandle;
 
@@ -19,7 +22,7 @@ private:
 			CreateFileW(
 				tempFilename
 				, GENERIC_READ
-				, FILE_SHARE_WRITE
+				, FILE_SHARE_READ | FILE_SHARE_WRITE
 				, NULL
 				, OPEN_EXISTING
 				, FILE_ATTRIBUTE_TEMPORARY
@@ -40,6 +43,8 @@ public:
 
 	HelpTempFile(UINT unique, LPCWSTR baseDir, LPCWSTR prefix)
 	{
+		_convertbuffer = new char[_convertBufferSize];
+
 		GetTempFileNameW(
 			  baseDir
 			, prefix
@@ -70,6 +75,8 @@ public:
 	}
 	~HelpTempFile()
 	{
+		delete[] _convertbuffer;
+
 		CloseHandle(this->_hWriteHandle);
 		CloseHandle(this->_hReadHandle);
 		DeleteFileW(_tempFilename);
@@ -110,6 +117,47 @@ public:
 			, NULL
 		);
 	}
+	/*
+	int WideCharToMultiByte(
+		  UINT                               CodePage,
+		  DWORD                              dwFlags,
+		  _In_NLS_string_(cchWideChar)LPCWCH lpWideCharStr,
+		  int                                cchWideChar,
+		  LPSTR                              lpMultiByteStr,
+		  int                                cbMultiByte,
+		  LPCCH                              lpDefaultChar,
+		  LPBOOL                             lpUsedDefaultChar
+	);
+	*/
+	void WriteUTF8(LPCWCH text)
+	{
+		int bytesWritten;
+		if ((bytesWritten = WideCharToMultiByte(
+			CP_UTF8								// CodePage 
+			, WC_ERR_INVALID_CHARS				// dwFlags
+			, text								// lpWideCharStr
+			, -1								// cchWideChar ... -1 == zero terminated W-string
+			, _convertbuffer					// lpMultiByteStr
+			, _convertBufferSize				// cbMultiByte
+			, NULL								// lpDefaultChar		NULL for UTF8
+			, NULL								// lpUsedDefaultChar	NULL for UTF8
+		)) == 0)
+		{
+			DWORD rc = GetLastError();
+			char err[64];
+			sprintf(err, "WideCharToMultiByte() lasterror: %d", rc);
+			throw std::exception(err);
+		}
+		/*
+		If this parameter is - 1, the function processes the entire input string, including the terminating null
+		character.Therefore, the resulting character string has a terminating null character, and the length
+		returned by the function includes this character.
+		*/
+
+		WriteBuff((unsigned char*)_convertbuffer, bytesWritten - 1);
+	}
+
+
 	void WriteUTF8BOM()
 	{
 		// UTF8 ... 0xEF,0xBB,0xBF

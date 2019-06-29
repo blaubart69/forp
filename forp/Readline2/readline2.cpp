@@ -40,11 +40,11 @@ extern "C" __declspec(dllimport) void __stdcall RtlMoveMemory(void *dst, const v
 //
 // ----------------------------------------------------------------------------
 //
-readline2::readline2(const HANDLE fp, const int bufsize)
+readline2::readline2(const HANDLE fp, const DWORD bufsize)
 	: _fp(fp), _bufsize(bufsize)
 {
 	_read_buffer = new char[bufsize];
-	_conv_buffer = new WCHAR[bufsize];
+	_conv_buffer = new WCHAR[bufsize + 1]; // +1 for trailing zero if needed
 
 	_firstRead = true;
 	_eof = false;
@@ -148,7 +148,7 @@ DWORD readline2::convert(_In_ int readBufStartIdx, _In_ int convBufStartIdx)
 				, _read_buffer + readBufStartIdx	// lpMultiByteStr
 				, bytesToConvert					// cbMultiByte 
 				, _conv_buffer + convBufStartIdx	// lpWideCharStr
-				, _bufsize							// cchWideChar 
+				, _bufsize  - convBufStartIdx       // cchWideChar 
 			)) == 0)
 			{
 				rc = GetLastError();
@@ -160,10 +160,7 @@ DWORD readline2::convert(_In_ int readBufStartIdx, _In_ int convBufStartIdx)
 			else
 			{
 				rc = 0;
-
 				_conv_buf_len += widecharsWritten;
-				_bytes_in_read_buffer = _bytes_in_read_buffer - (readBufStartIdx + bytesToConvert);
-
 				//
 				// if not every byte in the read_buffer was converted
 				//	--> move down the bytes to the begin of the buffer
@@ -171,13 +168,15 @@ DWORD readline2::convert(_In_ int readBufStartIdx, _In_ int convBufStartIdx)
 				// example: a 3-byte UTF8 codepoint was not fully written to the read_buffer.
 				// So the UTF8 character can not be decoded. We have to wait for the next read.
 				//
-				if (_bytes_in_read_buffer > 0)
+				if (bytesNotConverted > 0)
 				{
 					RtlMoveMemory(
 						_read_buffer													//	dest
 						, &(_read_buffer[_bytes_in_read_buffer - bytesNotConverted])	// source
 						, bytesNotConverted);
 				}
+
+				_bytes_in_read_buffer = bytesNotConverted;
 			}
 		}
 	} while (rc == ERROR_NO_UNICODE_TRANSLATION && bytesNotConverted < 4);
