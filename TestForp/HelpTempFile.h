@@ -80,7 +80,7 @@ public:
 		return this->_hReadHandle;
 	}
 
-	void WriteContentW(LPCWSTR stuff)
+	void WriteW(LPCWSTR stuff)
 	{
 		if (!_utf16bomwritten)
 		{
@@ -99,7 +99,7 @@ public:
 			, NULL
 		);
 	}
-	void WriteContentA(LPCSTR stuff)
+	void WriteA(LPCSTR stuff)
 	{
 		DWORD written;
 		WriteFile(
@@ -133,6 +133,4 @@ public:
 			, NULL
 		);
 	}
-
-	
 };
