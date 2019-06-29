@@ -6,10 +6,12 @@ class HelpTempFile
 {
 
 private:
-	HANDLE hFile;
-	HANDLE hReadHandle;
+	WCHAR _tempFilename[MAX_PATH];
 
-	bool utf16bomwritten = false;
+	HANDLE _hWriteHandle;
+	HANDLE _hReadHandle;
+
+	bool _utf16bomwritten = false;
 
 	HANDLE OpenTempfileForReading(LPCWSTR tempFilename)
 	{
@@ -38,20 +40,16 @@ public:
 
 	HelpTempFile(UINT unique, LPCWSTR baseDir, LPCWSTR prefix)
 	{
-		WCHAR tempFilename[MAX_PATH];
-
 		GetTempFileNameW(
-			//L"c:\\temp\\LineReader"
-			//, L"LineReader_"
 			  baseDir
 			, prefix
 			, unique
-			, tempFilename
+			, _tempFilename
 		);
 
-		hFile =
+		_hWriteHandle =
 			CreateFile(
-				tempFilename
+				_tempFilename
 				, GENERIC_WRITE
 				, FILE_SHARE_READ
 				, NULL
@@ -59,33 +57,34 @@ public:
 				, FILE_ATTRIBUTE_TEMPORARY
 				, NULL);
 
-		if (hFile == INVALID_HANDLE_VALUE)
+		if (_hWriteHandle == INVALID_HANDLE_VALUE)
 		{
 			int rc = GetLastError();
 			WCHAR err[128];
-			wsprintf(err, L"CreateFile() rc: %d, [%d] [%s]", rc, unique, tempFilename);
+			wsprintf(err, L"CreateFile() rc: %d, [%d] [%s]", rc, unique, _tempFilename);
 			Assert::Fail(err);
 		}
 
-		hReadHandle = OpenTempfileForReading(tempFilename);
+		_hReadHandle = OpenTempfileForReading(_tempFilename);
 
 	}
 	~HelpTempFile()
 	{
-		CloseHandle(this->hFile);
-		CloseHandle(this->hReadHandle);
+		CloseHandle(this->_hWriteHandle);
+		CloseHandle(this->_hReadHandle);
+		DeleteFileW(_tempFilename);
 	}
 
 	HANDLE getReadHandle()
 	{
-		return this->hReadHandle;
+		return this->_hReadHandle;
 	}
 
 	void WriteContentW(LPCWSTR stuff)
 	{
-		if (!utf16bomwritten)
+		if (!_utf16bomwritten)
 		{
-			utf16bomwritten = true;
+			_utf16bomwritten = true;
 			WriteUTF16LEBOM();
 		}
 
@@ -93,7 +92,7 @@ public:
 
 		DWORD written;
 		WriteFile(
-			this->hFile
+			this->_hWriteHandle
 			, stuff
 			, len
 			, &written
@@ -104,7 +103,7 @@ public:
 	{
 		DWORD written;
 		WriteFile(
-			this->hFile
+			this->_hWriteHandle
 			, stuff
 			, lstrlenA(stuff)
 			, &written
@@ -121,13 +120,13 @@ public:
 	{
 		unsigned char BOM[2] = { 0xFF, 0xFE };
 		WriteBuff(BOM, 2);
-		utf16bomwritten = true;
+		_utf16bomwritten = true;
 	}
 	void WriteBuff(unsigned char* buf, int cbLen)
 	{
 		DWORD written;
 		WriteFile(
-			this->hFile
+			this->_hWriteHandle
 			, buf
 			, cbLen
 			, &written
